@@ -1,0 +1,1206 @@
+<title>R Shiny for Clinical Dashboards</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --ink:#1B2340;
+  --paper:#F5F6FA;
+  --surface:#FFFFFF;
+  --surface-2:#EDEFF7;
+  --accent:#2C3E7A;
+  --accent-soft:#DCE3F5;
+  --teal:#0F7A7A;
+  --teal-soft:#D6EEEC;
+  --amber:#C97A22;
+  --amber-soft:#F5E4CC;
+  --muted:#5B6182;
+  --line:#D6D9E8;
+  --code-bg:#161C33;
+  --code-ink:#DCE1F5;
+  --code-accent:#7FA3FF;
+  --code-string:#8FD6C4;
+  --code-comment:#6B7299;
+  --code-key:#F2B266;
+  --shadow: 0 20px 50px -20px rgba(27,35,64,0.35);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#E8EAF6; --paper:#0F1224; --surface:#171B33; --surface-2:#1E2440;
+    --accent:#7C97F5; --accent-soft:#293463; --teal:#4FCFC6; --teal-soft:#173634;
+    --amber:#F0AE64; --amber-soft:#3A2C15; --muted:#A6ABCB; --line:#2C3159;
+    --code-bg:#0B0E1E; --code-ink:#DCE1F5; --code-accent:#8FB0FF; --code-string:#9BE0CE;
+    --code-comment:#6B7299; --code-key:#F2B266; --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E8EAF6; --paper:#0F1224; --surface:#171B33; --surface-2:#1E2440;
+  --accent:#7C97F5; --accent-soft:#293463; --teal:#4FCFC6; --teal-soft:#173634;
+  --amber:#F0AE64; --amber-soft:#3A2C15; --muted:#A6ABCB; --line:#2C3159;
+  --code-bg:#0B0E1E; --code-ink:#DCE1F5; --code-accent:#8FB0FF; --code-string:#9BE0CE;
+  --code-comment:#6B7299; --code-key:#F2B266; --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:#0B0D18; color:var(--ink); font-family:'IBM Plex Sans', system-ui, sans-serif; overflow:hidden; height:100vh; width:100vw; display:flex; align-items:center; justify-content:center;}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]) body{background:#DCE0EC;} }
+:root[data-theme="light"] body{background:#DCE0EC;}
+@media (prefers-reduced-motion: reduce){*{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}}
+
+h1,h2,h3{font-family:'Fraunces', Georgia, serif; text-wrap:balance; margin:0; letter-spacing:-0.01em;}
+.eyebrow{font-family:'IBM Plex Mono', monospace; font-size:14px; text-transform:uppercase; letter-spacing:0.15em; color:var(--teal); font-weight:600;}
+code,.mono{font-family:'IBM Plex Mono', monospace;}
+
+/* ===== Fixed-aspect presentation canvas (design size 1280x720, uniformly scaled to fit the viewport this is what keeps every slide's proportions exactly as designed regardless of window size) ===== */
+#stage-wrap{position:relative; width:1280px; height:720px; flex:none; transform-origin:center center;}
+#deck{position:relative; width:1280px; height:720px; overflow:hidden; background:var(--paper); border-radius:10px; box-shadow:0 60px 140px -30px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);}
+.slide{position:absolute; inset:0; display:flex; flex-direction:column; padding:56px 76px 50px; opacity:0; transform:translateX(48px) scale(0.98); transition:opacity 0.5s cubic-bezier(.22,.61,.36,1), transform 0.5s cubic-bezier(.22,.61,.36,1); pointer-events:none; overflow-y:auto; font-size:17px;}
+.slide.active{opacity:1; transform:translateX(0) scale(1); pointer-events:auto; z-index:2;}
+.slide.prev{opacity:0; transform:translateX(-48px) scale(0.98);}
+.slide-inner{width:100%; height:100%; display:flex; flex-direction:column;}
+
+#progress-track{position:fixed; top:0; left:0; height:3px; width:100%; background:rgba(255,255,255,0.15); z-index:11;}
+#progress-bar{height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--teal)); transition:width 0.4s cubic-bezier(.22,.61,.36,1);}
+#counter{position:fixed; bottom:14px; left:22px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8890B5; z-index:11; letter-spacing:0.04em;}
+#counter b{color:#E8EAF6;}
+.navbtn{position:fixed; top:50%; transform:translateY(-50%); width:42px; height:42px; border-radius:50%; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.06); color:#E8EAF6; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:11; backdrop-filter:blur(6px); transition:transform 0.2s ease, background 0.2s ease; font-size:1.05rem;}
+.navbtn:hover{transform:translateY(-50%) scale(1.08); background:rgba(255,255,255,0.14);}
+.navbtn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+#prevBtn{left:16px;} #nextBtn{right:16px;}
+#tagline{position:fixed; bottom:14px; right:22px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8890B5; z-index:11;}
+#jumpwrap{position:fixed; bottom:14px; left:50%; transform:translateX(-50%); z-index:11; display:flex; align-items:center; gap:8px;}
+#jumpbar{width:min(30vw,360px); height:4px; background:rgba(255,255,255,0.15); border-radius:4px; position:relative; cursor:pointer;}
+#jumpfill{position:absolute; left:0; top:0; height:100%; background:var(--accent); border-radius:4px; width:0%;}
+#partlabel{font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8890B5; min-width:150px;}
+
+.tag{display:inline-flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:13px; text-transform:uppercase; letter-spacing:0.1em; padding:5px 12px; border-radius:100px; background:var(--accent-soft); color:var(--accent); font-weight:600; width:fit-content;}
+.tag.teal{background:var(--teal-soft); color:var(--teal);}
+.tag.amber{background:var(--amber-soft); color:var(--amber);}
+
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:34px; align-items:center;}
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:24px; align-items:center;}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:30px 32px; box-shadow:var(--shadow);}
+.content-center{flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center;}
+.card h3{font-size:21px; margin-bottom:12px; color:var(--ink);}
+.card p{margin:0; color:var(--muted); font-size:17px; line-height:1.65;}
+
+ul.clean{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:15px;}
+ul.clean li{padding-left:24px; position:relative; color:var(--muted); font-size:17px; line-height:1.6;}
+ul.clean li::before{content:"-"; position:absolute; left:0; color:var(--teal); font-weight:600;}
+ul.clean li b{color:var(--ink);}
+
+.codepanel{background:var(--code-bg); color:var(--code-ink); border-radius:14px; padding:26px 28px; font-family:'IBM Plex Mono',monospace; font-size:15.5px; line-height:1.85; overflow:auto; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.06); white-space:pre-wrap; word-wrap:break-word;}
+.codepanel .c-key{color:var(--code-key);} .codepanel .c-str{color:var(--code-string);} .codepanel .c-fn{color:var(--code-accent);} .codepanel .c-cm{color:var(--code-comment); font-style:italic;}
+.codepanel::-webkit-scrollbar{height:8px; width:8px;} .codepanel::-webkit-scrollbar-thumb{background:#333a5c; border-radius:4px;}
+
+.timeline{display:flex; flex-direction:column; gap:0; flex:1; min-height:0; overflow-y:auto; padding-right:6px; justify-content:center;}
+.trow{display:grid; grid-template-columns:104px 1fr 168px; gap:16px; padding:13px 0; border-bottom:1px solid var(--line); align-items:start;}
+.trow:last-child{border-bottom:none;}
+.trow .time{font-family:'IBM Plex Mono',monospace; font-size:15px; color:var(--teal); font-weight:600; padding-top:2px;}
+.trow .who{font-size:14px; color:var(--muted); text-align:right; padding-top:2px;}
+.trow .what b{display:block; font-size:17px; margin-bottom:3px;}
+.trow .what span{color:var(--muted); font-size:14.5px;}
+
+.diagram-grid{display:grid; row-gap:26px; column-gap:16px; align-items:center; justify-items:center;}
+.dbox{background:var(--surface); border:1.5px solid var(--line); border-radius:12px; padding:20px 20px; width:100%; min-height:84px; text-align:center; box-shadow:var(--shadow); display:flex; flex-direction:column; align-items:center; justify-content:center;}
+.dbox b{display:block; font-size:16px; margin-bottom:5px;}
+.dbox span{font-size:13.5px; color:var(--muted); line-height:1.4;}
+.dbox.accent{border-color:var(--accent); background:var(--accent-soft);}
+.dbox.teal{border-color:var(--teal); background:var(--teal-soft);}
+.dbox.amber{border-color:var(--amber); background:var(--amber-soft);}
+.dbox-ghost{visibility:hidden;}
+.darrow{color:var(--muted); font-size:22px; font-family:'IBM Plex Mono',monospace;}
+
+.kicker-row{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:26px; flex-wrap:wrap;}
+.title-hero{display:flex; flex-direction:column; justify-content:center; align-items:flex-start; flex:1; gap:24px;}
+.title-hero h1{font-size:58px; line-height:1.06; font-weight:600;}
+.title-hero .sub{font-size:19px; color:var(--muted); max-width:640px; line-height:1.55;}
+.meta-row{display:flex; gap:28px; flex-wrap:wrap; margin-top:4px;}
+.meta-item{font-family:'IBM Plex Mono',monospace; font-size:13.5px; color:var(--muted);}
+.meta-item b{color:var(--ink); display:block; font-size:16px; font-family:'IBM Plex Sans',sans-serif; margin-bottom:3px;}
+.presenter-card{display:flex; align-items:center; gap:14px; background:var(--surface); border:1px solid var(--line); border-radius:100px; padding:10px 24px 10px 10px; box-shadow:var(--shadow); width:fit-content;}
+.avatar{width:52px; height:52px; border-radius:50%; flex:none; background:linear-gradient(135deg,var(--accent),var(--teal)); display:flex; align-items:center; justify-content:center; color:white; font-family:'Fraunces',serif; font-weight:600; font-size:19px;}
+.presenter-card .pname{font-weight:600; font-size:16px;} .presenter-card .prole{color:var(--muted); font-size:13.5px;}
+
+.pillrow{display:flex; gap:10px; flex-wrap:wrap;}
+.pill{background:var(--surface-2); border:1px solid var(--line); border-radius:100px; padding:7px 15px; font-size:13.5px; color:var(--muted); font-family:'IBM Plex Mono',monospace;}
+.bignum{font-family:'Fraunces',serif; font-size:38px; color:var(--accent); font-weight:600; line-height:1;}
+
+.divider-num{font-family:'Fraunces',serif; font-size:220px; font-weight:600; color:var(--accent-soft); line-height:0.9; position:absolute; top:5%; right:3%; z-index:0; opacity:0.6;}
+.divider-content{position:relative; z-index:1;}
+
+.two-col-text{display:flex; flex-direction:column; gap:16px; justify-content:center;}
+.big-body{font-size:19px; color:var(--muted); line-height:1.6; max-width:62ch;}
+</style>
+
+<div id="stage-wrap"><div id="deck"></div></div>
+<div id="progress-track"><div id="progress-bar"></div></div>
+<button class="navbtn" id="prevBtn" aria-label="Previous slide">&#8592;</button>
+<button class="navbtn" id="nextBtn" aria-label="Next slide">&#8594;</button>
+<div id="counter"><b id="curNum">01</b> / <span id="totalNum">100</span></div>
+<div id="tagline">IASCT &middot; 12 Sept 2026</div>
+<div id="jumpwrap"><span id="partlabel"></span><div id="jumpbar"><div id="jumpfill"></div></div></div>
+
+<script>
+const SLIDES = [];
+let PART = "";
+function setPart(name){ PART = name; }
+
+function wrap(inner, extraStyle=""){
+  return `<div class="slide-inner"${extraStyle?` style="${extraStyle}"`:""}>${inner}</div>`;
+}
+
+function head(eyebrow, title, tagRight=""){
+  return `<div class="kicker-row"><div><span class="eyebrow">${eyebrow}</span><h2 style="font-size:33px;margin-top:8px;max-width:900px;">${title}</h2></div>${tagRight}</div>`;
+}
+
+function divider(numLabel, title, sub, pills=[]){
+  SLIDES.push({part:PART, html: wrap(`
+    <div class="divider-num">${numLabel}</div>
+    <div class="divider-content" style="display:flex;flex-direction:column;justify-content:center;flex:1;gap:20px;">
+      <span class="eyebrow">${PART}</span>
+      <h1 style="font-size:50px;max-width:880px;">${title}</h1>
+      <p class="big-body">${sub}</p>
+      ${pills.length? `<div class="pillrow">${pills.map(p=>`<span class="pill">${p}</span>`).join("")}</div>`:""}
+    </div>
+  `,"justify-content:center;")});
+}
+
+function concept(eyebrow, title, leftHead, leftItems, rightHead, rightItems, tagRight=""){
+  const rightBlock = rightItems ? `
+    <div class="card"><h3>${rightHead}</h3><ul class="clean">${rightItems.map(i=>`<li>${i}</li>`).join("")}</ul></div>` : "";
+  const leftBlock = `<div class="card"><h3>${leftHead}</h3><ul class="clean">${leftItems.map(i=>`<li>${i}</li>`).join("")}</ul></div>`;
+  SLIDES.push({part:PART, html: wrap(`
+    ${head(eyebrow,title,tagRight)}
+    <div class="content-center">
+      <div class="${rightItems?'grid2':''}" style="${!rightItems?'max-width:760px;':''}">
+        ${leftBlock}${rightBlock}
+      </div>
+    </div>
+  `)});
+}
+
+function focus(eyebrow, title, bodyHtml, tagRight=""){
+  SLIDES.push({part:PART, html: wrap(`
+    ${head(eyebrow,title,tagRight)}
+    <div class="content-center"><div class="card">${bodyHtml}</div></div>
+  `)});
+}
+
+function codeSlide(eyebrow, title, code, bullets, tagRight=""){
+  SLIDES.push({part:PART, html: wrap(`
+    ${head(eyebrow,title,tagRight)}
+    <div class="content-center">
+      <div class="grid2">
+        <div class="codepanel">${code}</div>
+        <div class="two-col-text"><ul class="clean">${bullets.map(b=>`<li>${b}</li>`).join("")}</ul></div>
+      </div>
+    </div>
+  `)});
+}
+
+function three(eyebrow, title, cards, tagRight=""){
+  SLIDES.push({part:PART, html: wrap(`
+    ${head(eyebrow,title,tagRight)}
+    <div class="content-center">
+      <div class="grid3">
+        ${cards.map(c=>`<div class="card"><h3>${c.h}</h3><p>${c.p}</p></div>`).join("")}
+      </div>
+      ${cards.note? `<div class="card" style="margin-top:16px;"><h3>${cards.note.h}</h3><p>${cards.note.p}</p></div>`:""}
+    </div>
+  `)});
+}
+
+function diagramSlide(eyebrow, title, rows, note){
+  const n = rows[0].length;
+  const template = [];
+  for(let i=0;i<n;i++){ template.push('1fr'); if(i<n-1) template.push('44px'); }
+  const cellsHtml = rows.map(row => row.map((b,i)=>{
+    const boxHtml = b===null
+      ? `<div class="dbox dbox-ghost"></div>`
+      : `<div class="dbox ${b.cls||''}"><b>${b.t}</b><span>${b.s}</span></div>`;
+    const arrowHtml = i<row.length-1 ? `<div class="darrow">&rarr;</div>` : "";
+    return boxHtml + arrowHtml;
+  }).join("")).join("");
+  SLIDES.push({part:PART, html: wrap(`
+    ${head(eyebrow,title)}
+    <div class="content-center">
+      <div class="diagram-grid" style="grid-template-columns:${template.join(' ')};">${cellsHtml}</div>
+      ${note? `<div class="card" style="margin-top:26px;"><h3>${note.h}</h3><p>${note.p}</p></div>`:""}
+    </div>
+  `)});
+}
+
+function timelineSlide(eyebrow, title, tagRight, rows){
+  SLIDES.push({part:PART, html: wrap(`
+    ${head(eyebrow,title,tagRight)}
+    <div class="timeline">${rows.map(r=>`
+      <div class="trow"><div class="time">${r.t}</div><div class="what"><b>${r.b}</b><span>${r.s}</span></div><div class="who">${r.w}</div></div>
+    `).join("")}</div>
+  `)});
+}
+
+setPart("Opening");
+
+SLIDES.push({part:PART, html: wrap(`
+  <div class="title-hero">
+    <span class="tag">IASCT Workshop &middot; 12 September 2026</span>
+    <h1>Building Interactive Dashboards<br>for Smarter Insights Using R&nbsp;Shiny</h1>
+    <p class="sub">A full-day, hands-on workshop &mdash; from R&nbsp;Shiny fundamentals through a live Mini TFL Builder to AI/LLM-assisted clinical output generation.</p>
+    <div class="meta-row">
+      <div class="meta-item"><b>10:00 AM &ndash; 06:00 PM</b>Full-day, in-person</div>
+      <div class="meta-item"><b>5 Sessions</b>Concepts &rarr; hands-on &rarr; AI</div>
+      <div class="meta-item"><b>Mini TFL Builder</b>Live demo app in R&nbsp;Shiny</div>
+    </div>
+    <div class="presenter-card">
+      <div class="avatar">MD</div>
+      <div><div class="pname">Mahesh Divakaran</div><div class="prole">Senior Tech Lead &ndash; R Developer, Ephicacy Life Science Analytics</div></div>
+    </div>
+  </div>
+`)});
+
+focus("Presenter", "About your speaker today", `
+  <div class="grid2" style="height:auto;">
+    <div>
+      <p style="color:var(--muted);line-height:1.6;">Mahesh Divakaran is a Senior Tech Lead and R Developer at Ephicacy Life Science Analytics, specializing in R Shiny application development for clinical trial reporting &mdash; from ADaM-driven TFL automation to interactive review dashboards and, most recently, LLM-assisted output generation.</p>
+      <div class="pillrow" style="margin-top:14px;"><span class="pill">R Shiny</span><span class="pill">Clinical TFLs</span><span class="pill">ADaM / pharmaverse</span><span class="pill">AI integration</span></div>
+    </div>
+    <div class="presenter-card" style="align-self:center;">
+      <div class="avatar">MD</div>
+      <div><div class="pname">Mahesh Divakaran</div><div class="prole">Senior Tech Lead &ndash; R Developer<br>Ephicacy Life Science Analytics</div></div>
+    </div>
+  </div>
+`);
+
+concept("Learning Outcomes", "What you'll be able to do by 6:00 PM",
+  "Concepts", ["Explain where R Shiny fits among clinical dashboard tools", "Describe the UI / Server / Reactive-engine model", "Recognize the building blocks of a clinical TFL dashboard"],
+  "Hands-on", ["Build and filter a mini TFL dashboard from ADaM data", "Export a table to HTML, Word and CSV, and a figure to PNG/SVG", "See a working pattern for LLM-assisted TFL generation"]
+);
+
+timelineSlide("Today's Flow", "Five sessions, one working dashboard", `<span class="tag teal">09:45 &ndash; 18:00</span>`, [
+  {t:"09:45", b:"Welcome & Introductions", s:"Setting expectations for the day", w:"IASCT EC member"},
+  {t:"10:00", b:"S1 &middot; Context & Use Cases", s:"Why dashboards, where R Shiny fits", w:"Mahesh, Venkatesh"},
+  {t:"10:45", b:"S2 &middot; Setup & Building Blocks", s:"UI / Server / Reactivity / Modules", w:"Mahesh, Venkatesh"},
+  {t:"11:35", b:"S3 &middot; Mini-Shiny Walkthrough", s:"A clinical-trial scenario, live", w:"Speaker, Mahesh"},
+  {t:"13:30", b:"S4 &middot; Mini TFL Builder", s:"Interactivity & output exports, hands-on", w:"Speaker, Venkatesh + Audience"},
+  {t:"15:45", b:"S5 &middot; AI & LLM Integration", s:"Chatbot-driven TFL generation", w:"Venkatesh, Mahesh"},
+  {t:"17:30", b:"Closing & Concluding Remarks", s:"Summary and open Q&amp;A", w:"IASCT EC member"},
+]);
+
+timelineSlide("Today's Flow", "Morning at a glance &mdash; concepts into a live build", "", [
+  {t:"09:45", b:"Introduction of IASCT and speakers", s:"Welcome note, expectations for the day", w:"IASCT EC member"},
+  {t:"10:00", b:"Dashboard purpose & clinical trial use cases", s:"Static reports &rarr; interactive analytics", w:"Mahesh"},
+  {t:"10:15", b:"R Shiny positioning", s:"vs. Tableau, Spotfire, Qlik, SAS VA; network graphs, heatmaps", w:"Venkatesh"},
+  {t:"10:30", b:"High-level design considerations", s:"Compliance, traceability, common mistakes", w:"Mahesh"},
+  {t:"10:45", b:"Environment setup", s:"R, RStudio, packages, project structure", w:"Mahesh"},
+  {t:"10:55", b:"UI, server, reactivity, module concepts", s:"Architecture overview", w:"Mahesh"},
+  {t:"11:10", b:"Building blocks for dashboard workflows", s:"Data loading modules, reusable practices", w:"Venkatesh"},
+  {t:"11:15", b:"Interactivity in graphs", s:"Dynamic, linked, drill-down visuals", w:"Venkatesh"},
+]);
+
+timelineSlide("Today's Flow", "Afternoon at a glance &mdash; build, export, and go AI-assisted", "", [
+  {t:"11:35", b:"Mini-Shiny Dashboard Walkthrough", s:"Problem statement, table vs. figure, AE workflow", w:"Speaker, Mahesh"},
+  {t:"12:15", b:"Q&A and recap before lunch", s:"", w:"All"},
+  {t:"13:30", b:"Mini TFL Builder &mdash; hands-on build", s:"Arm &rarr; Population &rarr; AE Summary Table", w:"Speaker, Venkatesh + Audience"},
+  {t:"14:15", b:"Interactivity for reviewing outputs", s:"AE incidence viz, reactive filtering", w:"Audience"},
+  {t:"15:00", b:"Exporting to PDF and Word", s:"Download/export functionality, reusability", w:"Audience + Mahesh"},
+  {t:"15:45", b:"AI/LLM integration patterns", s:"With Ollama or OpenAI API", w:"Venkatesh"},
+  {t:"16:15", b:"Chatbot interface in R Shiny", s:"", w:"Venkatesh"},
+  {t:"16:45", b:"Illustrative use case with the mini TFL app", s:"", w:"Venkatesh + Mahesh"},
+]);
+
+setPart("Session 1 Â· Context & Use Cases");
+divider("01", "R Shiny in Clinical Trial Dashboards", "Context, positioning, and design considerations for teams already comfortable with R Shiny basics.", ["10:00 â 10:45","Mahesh + Venkatesh"]);
+
+concept("10:00 â 10:15 Â· Mahesh", "Evolution from static reports to interactive analytics",
+  "What's changing", [
+    "Static PDF/RTF TFLs answer only the exact question they were built for",
+    "Interactive dashboards let a reviewer ask the <i>next</i> question without a new programming request",
+    "The underlying statistical logic doesn't change &mdash; only how a user reaches it does"
+  ],
+  "Where it shows up", [
+    "Ad-hoc safety review during DSMB preparation",
+    "Cross-functional study team check-ins",
+    "Exploratory data review ahead of a formal analysis"
+  ]
+);
+
+concept("10:00 â 10:15 Â· Mahesh", "Dashboards for study monitoring and decision support",
+  "Monitoring use cases", [
+    "Enrollment and disposition tracking across sites",
+    "Ongoing AE signal monitoring outside the locked-database cycle",
+    "Query and data-quality trend views for CRAs and DM"
+  ],
+  "Decision support", [
+    "Faster DSMB / safety committee turnaround on ad-hoc questions",
+    "Study teams self-serve filtered views instead of queueing programming requests",
+    "One source of truth reduces duplicate one-off analyses"
+  ]
+);
+
+three("10:00 â 10:15 Â· Mahesh", "Who benefits, and how", [
+  {h:"Statisticians", p:"Explore subgroup and sensitivity views without re-running SAS/R batch jobs for every cut."},
+  {h:"Programmers", p:"One validated app replaces dozens of one-off ad-hoc TFL requests over a study's lifecycle."},
+  {h:"Clinicians & study teams", p:"Self-serve, guided filtering &mdash; no coding required to answer a review question."}
+]);
+
+concept("10:15 â 10:30 Â· Venkatesh", "Where R Shiny sits among clinical dashboard tools",
+  "Commercial BI platforms", [
+    "<b>Tableau / Qlik</b> &mdash; fast to configure, strong for general BI, licensed per seat",
+    "<b>Spotfire</b> &mdash; established in life sciences, strong ad-hoc visual analytics",
+    "<b>SAS Visual Analytics</b> &mdash; tight fit for SAS-based validated pipelines"
+  ],
+  "R Shiny's niche", [
+    "Full R ecosystem access &mdash; the same language used to program ADaM/TLFs",
+    "Open source: no per-seat licensing, fully customizable UI and statistical logic",
+    "Best fit when the output logic itself &mdash; not just the visualization &mdash; is the hard part"
+  ]
+);
+
+focus("10:15 â 10:30 Â· Venkatesh", "Statistical graphics R Shiny renders natively", `
+  <div class="grid2" style="height:auto;">
+    <div><h3>Network graphs</h3><p>Adverse event co-occurrence, SOC/PT relationship maps, site-to-site enrollment flow &mdash; rendered with <code class="mono">ggraph</code>/<code class="mono">visNetwork</code> directly inside a reactive panel.</p></div>
+    <div><h3>Heatmaps & other statistical graphs</h3><p>Lab shift heatmaps, correlation matrices, forest plots &mdash; all first-class <code class="mono">ggplot2</code> geoms, styled once and reused everywhere in the app.</p></div>
+  </div>
+`);
+
+concept("10:30 â 10:45 Â· Mahesh", "High-level design considerations for users familiar with R Shiny basics",
+  "Translating outputs into visuals", [
+    "A table row and a chart mark should represent the exact same underlying computation",
+    "Preserve the N used for percentages visibly &mdash; don't let a filter silently change the denominator",
+    "Keep clinical vocabulary (SOC, PT, TEAE) consistent between tables and figures"
+  ],
+  "Compliance & traceability", [
+    "Every displayed number must trace back to a specific ADaM variable and filter",
+    "Reproducibility: the same inputs must always produce the same output",
+    "Log or version what population/treatment filters produced a given export"
+  ]
+);
+
+focus("10:30 â 10:45 Â· Mahesh", "Common visualization mistakes to avoid", `
+  <ul class="clean">
+    <li>Truncated or non-zero-based axes that visually exaggerate treatment differences</li>
+    <li>Uncontrolled, non-consistent color mapping for treatment arms across tables and figures</li>
+    <li>Omitting the N per arm, making percentages impossible to sanity-check</li>
+    <li>Overplotting dense categorical data without faceting, sorting, or top-N filtering</li>
+    <li>Interactive filters that silently change results with no visible indication a filter is active</li>
+  </ul>
+`);
+
+setPart("Session 2 Â· Setup & Building Blocks");
+divider("02", "R Shiny Environment Setup and Dashboard Building Blocks", "The architecture and vocabulary we'll reuse for the rest of the day, once, in the abstract.", ["10:45 â 11:20","Mahesh + Venkatesh"]);
+
+concept("10:45 â 10:55 Â· Mahesh", "Setting up the R Shiny development environment",
+  "Core setup", [
+    "R (4.x) + RStudio, or any IDE with an R language server",
+    "Project-per-app structure: <code class=\"mono\">app.R</code> or split <code class=\"mono\">ui.R</code>/<code class=\"mono\">server.R</code>",
+    "<code class=\"mono\">renv</code> recommended for locking package versions on a validated build"
+  ],
+  "Recommended project layout", [
+    "One <code class=\"mono\">app.R</code> for a self-contained app (what today's demo uses)",
+    "A <code class=\"mono\">R/</code> folder for helper functions once the app grows past one file",
+    "Keep data-loading, transformation, and rendering logic in separate functions from the start"
+  ]
+);
+
+focus("10:45 â 10:55 Â· Mahesh", "The package stack behind today's demo app", `
+  <div class="pillrow" style="gap:10px;">
+    <span class="pill">shiny</span><span class="pill">bslib</span><span class="pill">dplyr / tidyr / purrr</span><span class="pill">ggplot2</span>
+    <span class="pill">gt</span><span class="pill">DT</span><span class="pill">haven</span><span class="pill">shinyWidgets</span>
+    <span class="pill">pharmaverseadam</span><span class="pill">flextable + officer</span>
+  </div>
+  <p style="margin-top:14px;color:var(--muted);">Each package owns one concern: <code class="mono">shiny</code>/<code class="mono">bslib</code> for app structure and theming, <code class="mono">dplyr</code>/<code class="mono">tidyr</code> for data shaping, <code class="mono">gt</code>/<code class="mono">DT</code> for tables, <code class="mono">ggplot2</code> for figures, <code class="mono">flextable</code>/<code class="mono">officer</code> for Word export, and <code class="mono">pharmaverseadam</code> for realistic, ready-made ADaM sample data.</p>
+`);
+
+diagramSlide("10:55 â 11:10 Â· Mahesh", "Architecture overview: UI / Server / Reactive Engine",
+  [[
+    {t:"UI", s:"declares what the user can see and touch", cls:"accent"},
+    {t:"Reactive Engine", s:"tracks dependencies, re-runs only what changed", cls:"teal"},
+    {t:"Server", s:"reads inputs, computes, writes outputs", cls:"amber"}
+  ]],
+  {h:"The core mental model", p:"UI declares inputs and output placeholders. Server functions read <code class=\"mono\">input$*</code> and assign to <code class=\"mono\">output$*</code>. The reactive engine is what makes this feel automatic &mdash; touch a filter, and only the outputs that depend on it re-render."}
+);
+
+concept("10:55 â 11:10 Â· Mahesh", "Inputs, outputs, layouts and widgets",
+  "Inputs", [
+    "<code class=\"mono\">selectInput</code>, <code class=\"mono\">checkboxGroupInput</code> &mdash; dropdowns and multi-select",
+    "<code class=\"mono\">sliderInput</code> &mdash; numeric ranges, e.g. minimum AE incidence %",
+    "<code class=\"mono\">fileInput</code>, <code class=\"mono\">dateRangeInput</code> &mdash; uploads and date pickers",
+    "<code class=\"mono\">shinyWidgets::switchInput</code> &mdash; a nicer boolean toggle"
+  ],
+  "Outputs", [
+    "<code class=\"mono\">tableOutput</code> / <code class=\"mono\">gt_output</code> &mdash; tables",
+    "<code class=\"mono\">plotOutput</code> &mdash; static ggplot2 figures",
+    "<code class=\"mono\">textOutput</code>, <code class=\"mono\">uiOutput</code> &mdash; dynamic text and dynamically generated UI",
+    "Every output has a matching <code class=\"mono\">render*()</code> call in the server"
+  ]
+);
+
+concept("10:55 â 11:10 Â· Mahesh", "Reactivity: the part that feels like magic",
+  "reactive()", [
+    "Wraps a computation that depends on inputs and caches its result",
+    "Only re-runs when one of its dependencies actually changes",
+    "Called like a function: <code class=\"mono\">table_data()</code>, not referenced like a variable"
+  ],
+  "observe() / observeEvent()", [
+    "Runs code for a <i>side effect</i> &mdash; not for its return value",
+    "Used for things like showing a notification or updating another input",
+    "<code class=\"mono\">req()</code> pauses reactive execution silently until a condition is met"
+  ]
+);
+
+focus("11:10 â 11:15 Â· Venkatesh", "Building blocks for clinical trial dashboard workflows", `
+  <ul class="clean">
+    <li><b>Data loading modules</b> &mdash; one reactive that resolves either built-in or uploaded ADaM data behind a single interface</li>
+    <li><b>Reusable coding practices</b> &mdash; shared filter/format helpers so every table and figure treats population flags and treatment arms identically</li>
+    <li><b>R Shiny architecture (UI, Server, reactive logic)</b> &mdash; keep each layer's responsibility narrow: UI never computes, Server never lays out</li>
+  </ul>
+`);
+
+focus("11:15 â 11:20 Â· Venkatesh", "Interactivity in graphs in clinical trials", `
+  <p style="color:var(--muted);line-height:1.6;">Dynamic, linked, and drill-down visual interactivity for clinical review &mdash; from the external source developed by VK.</p>
+  <ul class="clean" style="margin-top:10px;"><li><b>Dynamic</b> &mdash; a chart redraws immediately as filters change, no page reload</li><li><b>Linked</b> &mdash; selecting a bar or point in one view filters another view on screen</li><li><b>Drill-down</b> &mdash; clicking a SOC-level bar reveals its underlying PT-level detail</li></ul>
+`);
+
+setPart("Session 2 Â· Shiny Vocabulary");
+focus("Reference Â· Reactive Vocabulary", "req() â the quiet guard used everywhere", `
+  <p style="color:var(--muted);line-height:1.6;"><code class="mono">req(x)</code> stops a reactive expression silently if <code class="mono">x</code> is missing, empty, or FALSE no error banner, the output simply doesn't render yet. It's how <code class="mono">table_data()</code> waits for treatment arms to be selected before attempting to build anything, and how <code class="mono">datasets()</code> waits for a file upload without crashing on <code class="mono">NULL</code>.</p>
+`);
+focus("Reference Â· Reactive Vocabulary", "isolate() â reading a reactive without depending on it", `
+  <p style="color:var(--muted);line-height:1.6;"><code class="mono">isolate(x())</code> reads a reactive's current value <i>without</i> creating a dependency on it useful inside an <code class="mono">observeEvent()</code> when you want a button click to trigger the update, not every keystroke in an accompanying text field. Not used directly in today's app, but essential once a chat-style interface (Session 5) needs to read the current filter state only at send-time.</p>
+`);
+focus("Reference Â· Reactive Vocabulary", "observeEvent() vs. reactive() â side effect vs. value", `
+  <p style="color:var(--muted);line-height:1.6;">A <code class="mono">reactive()</code> is called like a function and returns a value <code class="mono">table_data()</code> is read by multiple outputs. An <code class="mono">observeEvent()</code> runs for its side effect and returns nothing meaningful used for things like <code class="mono">showNotification()</code> or writing to a log. Mixing the two up is the most common source of confusing bugs for teams new to Shiny.</p>
+`);
+focus("Reference Â· Reactive Vocabulary", "renderUI() / uiOutput() â server-generated UI", `
+  <p style="color:var(--muted);line-height:1.6;">Some UI can't be written once in the UI function because its choices depend on data that isn't known until runtime which population flags exist, which treatment arms are present. <code class="mono">uiOutput("tbl_pop_flag_ui")</code> in the UI pairs with <code class="mono">renderUI({...})</code> in the server to generate that control dynamically, every time the underlying dataset changes.</p>
+`);
+focus("Reference Â· Reactive Vocabulary", "The %||% null-coalescing operator", `
+  <p style="color:var(--muted);line-height:1.6;"><code class="mono">a %||% b</code> returns <code class="mono">a</code> if it isn't <code class="mono">NULL</code>, otherwise <code class="mono">b</code>. Defined at the bottom of <code class="mono">app.R</code> and used in <code class="mono">table_data()</code> as <code class="mono">input$min_pct %||% 0</code> a one-line defensive default for a control that hasn't rendered on the very first page load yet.</p>
+`);
+
+setPart("Session 3 Â· Mini-Shiny Walkthrough");
+divider("03", "Mini-Shiny Dashboard Walkthrough", "A hands-on walkthrough for creating a mini-Shiny dashboard based on a clinical trial scenario &mdash; the bridge into today's live demo.", ["11:35 â 12:15","Speaker + Mahesh"]);
+
+concept("11:35 â 12:15 Â· Speaker, Mahesh", "Problem statement and design decisions",
+  "The scenario", [
+    "A study team needs demographics, disposition, and AE summaries without filing a new programming ticket for every cut",
+    "Requirement: one app, multiple TFL shells, consistent filtering across all of them",
+    "Constraint: must work against real ADaM structures (ADSL, ADAE) so it generalizes beyond the demo"
+  ],
+  "Design decisions", [
+    "One shared reactive data pipeline feeds every table and figure",
+    "Population flag and treatment arms are selected per-tab, not globally, so Tables and Figures stay independent",
+    "Every output owns its own export handler, but reuses the same underlying reactive"
+  ]
+);
+
+concept("11:35 â 12:15 Â· Speaker, Mahesh", "Table vs. figure generation; typical AE reporting workflow",
+  "Table generation", [
+    "Aggregate counts and percentages per treatment arm, formatted for direct clinical reading",
+    "Structured with header rows, indentation (SOC &rarr; PT), and a source note",
+    "Exportable as-is to HTML/Word for a TLF shell"
+  ],
+  "Typical AE workflow", [
+    "Filter to the Safety Analysis Set (<code class=\"mono\">SAFFL == 'Y'</code>) and treatment-emergent events (<code class=\"mono\">TRTEMFL == 'Y'</code>)",
+    "Summarize at Overview, then SOC/PT, then Severity level",
+    "Visualize top incidence terms as a ranked bar chart for fast signal scanning"
+  ]
+);
+
+setPart("Demo App Â· Architecture");
+divider("04", "Now Let's Open the App: A Mini TFL Builder", "Built entirely in R Shiny on <code class=\"mono\">pharmaverseadam</code> ADaM data. Everything from Session 2's concepts, applied.", ["app.R","~700 lines, single file"]);
+
+diagramSlide("Demo App Â· Architecture", "Three tabs, one reactive data spine", [
+  [ {t:"Sidebar", s:"Data source Â· upload or built-in ADaM", cls:"accent"}, {t:"datasets()", s:"reactive: ADSL / ADAE / ADLB / ADVS"}, {t:"View Data", s:"DT preview + summary", cls:"teal"} ],
+  [ null, null, {t:"Tables tab", s:"gt Â· demog, disposition, AE...", cls:"amber"} ],
+], {h:"Design pattern", p:"One <code class=\"mono\">datasets()</code> reactive feeds everything downstream. Population flag, treatment variable, and treatment arms are selected per-tab so Tables and Figures filter independently without duplicating data-loading logic."});
+
+three("Demo App Â· Architecture", "What ships in the demo", [
+  {h:"5 Tables", p:"Demographics (14.1.1), Disposition (14.1.2), AE Overview (14.3.1), AE by SOC/PT (14.3.2), AE by Max Severity (14.3.3)."},
+  {h:"3 Figures", p:"Boxplot by Treatment (14.2.1), Histogram (14.2.2), AE Incidence Bar Chart (14.3.1)."},
+  {h:"3 Export formats", p:"HTML and CSV for tables, plus Word (.docx) via flextable/officer; PNG and SVG for figures."}
+]);
+
+setPart("Code Walkthrough Â· Foundations");
+
+codeSlide("Code Â· Constants", "Brand palette and treatment colors", `BRAND_BLUE <- "#2C3E7A"
+TRT_PALETTE <- c("#546E7A","#1565C0",
+  "#B71C1C","#2E7D32","#6A1B9A",
+  "#E65100","#00695C","#4527A0",
+  "#37474F","#880E4F")`, [
+  "Defined once, at the top of the file, and referenced everywhere &mdash; the <code class=\"mono\">gt</code> header, the sidebar title, and every <code class=\"mono\">ggplot2</code> figure",
+  "10 distinguishable colors support up to 10 treatment arms before any repeats",
+  "Centralizing the palette means a rebrand is a one-line change, not a find-and-replace across every chart function"
+]);
+
+codeSlide("Code Â· Constants", "Table & figure menus, and their titles", `TABLE_CHOICES <- c(
+  "Demographics (T14.1.1)" = "demog",
+  "Disposition (T14.1.2)"  = "dispos",
+  "AE Overview (T14.3.1)"   = "ae_overview",
+  "AE by SOC / PT (T14.3.2)" = "ae_socpt",
+  "AE by Max Severity (T14.3.3)" = "ae_sev"
+)`, [
+  "The named vector <i>is</i> the dropdown label on the left, internal key on the right",
+  "<code class=\"mono\">TABLE_TITLES</code> maps the same keys to full TLF titles used in headers and exports",
+  "Adding a 6th table means: one new entry here, one new <code class=\"mono\">build_*()</code> function, one <code class=\"mono\">switch()</code> case nothing else changes"
+]);
+
+concept("Code Â· Formatters", "Small formatting helpers, used everywhere",
+  "The three formatters", [
+    "<code class=\"mono\">fmt_n_pct(n, N)</code> &rarr; <code class=\"mono\">\"12 (34.3%)\"</code>",
+    "<code class=\"mono\">fmt_mean_sd(x)</code> &rarr; <code class=\"mono\">\"45.2 (12.1)\"</code>",
+    "<code class=\"mono\">fmt_med_rng(x)</code> &rarr; <code class=\"mono\">\"44.0 [21.0, 78.0]\"</code>"
+  ],
+  "Why it matters", [
+    "Every table in the app calls these formatting is consistent by construction, not by convention",
+    "A single decimal-place change (e.g. regulatory requirement update) touches 3 lines total",
+    "Each formatter is a pure function: same input always produces the same string, easy to unit test"
+  ]
+);
+
+three("Code Â· Package Spotlight", "shiny + bslib â the app's skeleton", [
+  {h:"shiny", p:"Core reactivity engine, input/output bindings, downloadHandler(). Everything else in this app is decoration on top of shiny's dependency graph."},
+  {h:"bslib", p:"Bootstrap 5 theming and modern layout primitives page_sidebar(), navset_tab(), card(), layout_columns() used throughout the UI."},
+  {h:"shinyWidgets", p:"Fills gaps in base shiny's input set switchInput() gives the Show Total toggle a cleaner look than a checkbox."}
+]);
+
+three("Code Â· Package Spotlight", "dplyr + tidyr + purrr â the data-shaping trio", [
+  {h:"dplyr", p:"filter(), mutate(), count(), group_by(), summarise() every aggregation in every build_*() function is dplyr verbs chained with |>."},
+  {h:"tidyr", p:"pivot_wider() and pivot_longer() turn long counted data into the wide, one-column-per-arm shape a clinical table needs."},
+  {h:"purrr", p:"map_dfr() drives the SOC/PT nesting in build_ae_socpt() and the row-by-row TEAE category logic in build_ae_overview()."}
+]);
+
+three("Code Â· Package Spotlight", "gt + DT â two table packages, two jobs", [
+  {h:"gt", p:"Publication-quality, styled clinical tables headers, spanners, conditional cell styling, source notes. This is what every Tables-tab output uses."},
+  {h:"DT", p:"Interactive, sortable, filterable data grids used only in the View Data tab, where the goal is raw exploration, not a formatted TLF."},
+  {h:"Why both", p:"gt for the deliverable, DT for the working view using one package for both would compromise either the polish or the interactivity."}
+]);
+
+three("Code Â· Package Spotlight", "ggplot2 â every figure, one grammar", [
+  {h:"Layered grammar", p:"geom_boxplot(), geom_histogram(), geom_col() each figure builder composes geoms onto one ggplot() call, the same mental model every time."},
+  {h:"tfl_theme", p:"A single theme object applied to all three figures keeps typography, gridlines, and legend placement consistent app-wide."},
+  {h:"Dual-purpose output", p:"The same plot object renders on screen via renderPlot() and exports via ggsave() at print resolution no separate export-only code path."}
+]);
+
+three("Code Â· Package Spotlight", "haven + pharmaverseadam + flextable/officer", [
+  {h:"haven", p:"Reads real SAS transport-style .sas7bdat files directly into R critical for a tool meant to work against actual clinical deliverables."},
+  {h:"pharmaverseadam", p:"Ships realistic, ready-made ADSL/ADAE/ADLB/ADVS sample data the demo works out of the box with zero setup."},
+  {h:"flextable + officer", p:"Rebuilds any gt table as an editable, submission-style Word table officer::read_docx() assembles the .docx entirely in memory."}
+]);
+
+focus("Code Â· Package Spotlight", "How the packages divide responsibility", `
+  <p style="color:var(--muted);line-height:1.6;">Notice the pattern: each package owns exactly one concern, and no two packages compete for the same job. <code class="mono">dplyr</code>/<code class="mono">tidyr</code> never touch presentation; <code class="mono">gt</code>/<code class="mono">ggplot2</code> never touch aggregation. That separation is what makes every <code class="mono">build_*()</code> function testable on its own, independent of Shiny running at all.</p>
+`);
+
+codeSlide("Code Â· Shared Filtering", "prep_adsl() â part 1: population & treatment filter", `prep_adsl <- function(adsl, trt_var,
+      pop_flag, trts, show_total) {
+  d <- if (pop_flag == "__ALL__") adsl
+       else filter(adsl,
+              .data[[pop_flag]] == "Y")
+  d <- filter(d, .data[[trt_var]] %in% trts) |>
+    mutate(TRT = factor(.data[[trt_var]],
+                     levels = trts))`, [
+  "Every table and figure builder calls <code class=\"mono\">prep_adsl()</code> first it's the single choke point for filtering logic",
+  "<code class=\"mono\">.data[[pop_flag]]</code> uses tidy-eval to filter by a <i>column name stored in a variable</i> essential since the population flag is a user selection, not hardcoded",
+  "<code class=\"mono\">factor(..., levels = trts)</code> locks treatment display order to the order the user selected arms in"
+]);
+
+codeSlide("Code Â· Shared Filtering", "prep_adsl() â part 2: synthesizing the Total column", `  N <- setNames(as.integer(table(d$TRT)), trts)
+  all_lvls <- if (show_total) c(trts, "Total") else trts
+
+  if (show_total) {
+    d <- bind_rows(d, mutate(d,
+             TRT = factor("Total", levels = all_lvls)))
+    N <- c(N, Total = sum(N))
+  }
+  list(d = d, N = N, all_lvls = all_lvls)
+}`, [
+  "The \"Total\" column isn't special-cased downstream it's manufactured by <i>duplicating every row</i> with <code class=\"mono\">TRT</code> relabeled to <code class=\"mono\">\"Total\"</code>",
+  "Because it's just another factor level, every <code class=\"mono\">count()</code>/<code class=\"mono\">pivot_wider()</code> call downstream treats it identically to a real arm",
+  "Returns a 3-part list <code class=\"mono\">d</code>, <code class=\"mono\">N</code>, <code class=\"mono\">all_lvls</code> that every builder destructures the same way"
+]);
+
+codeSlide("Code Â· Shared Filtering", "wide_counts() â count, join, pivot in one call", `wide_counts <- function(d, grp_cols, N, all_lvls) {
+  d |>
+    count(TRT, across(all_of(grp_cols))) |>
+    right_join(expand.grid(...),  # fills implicit zeros
+               by = c("TRT", grp_cols)) |>
+    mutate(n = replace_na(n, 0L),
+           val = fmt_n_pct(n, N[as.character(TRT)])) |>
+    pivot_wider(names_from = TRT, values_from = val)
+}`, [
+  "<code class=\"mono\">expand.grid()</code> + <code class=\"mono\">right_join()</code> is the trick that turns \"0 subjects had this category\" from a missing row into an explicit <code class=\"mono\">\"0 (0.0%)\"</code>",
+  "Reused by <code class=\"mono\">build_demog()</code> (sex, race), <code class=\"mono\">build_dispos()</code> (status), and <code class=\"mono\">build_ae_sev()</code> (severity) one function, three tables",
+  "Ends in wide format: one column per treatment arm, ready to hand to <code class=\"mono\">gt()</code>"
+]);
+
+focus("Code Â· Shared Filtering", "hdr_row() â the \"(N=xx)\" header row", `
+  <p style="color:var(--muted);">A tiny helper that builds a single-row tibble like <code class="mono">Characteristic | (N=64) | (N=62) | (N=126)</code> using the treatment N's computed in <code class="mono">prep_adsl()</code>. Every table prepends one of these via <code class="mono">bind_rows()</code> so the reader always sees the denominator before reading a single percentage directly addressing the \"don't hide the N\" design principle from Session 1.</p>
+`);
+
+setPart("Code Walkthrough Â· Table Builders");
+
+codeSlide("Table Builder 1/5", "build_demog() â Demographics (T14.1.1)", `age_tbl <- d |> group_by(TRT) |>
+  summarise(\`Mean (SD)\` = fmt_mean_sd(AGE),
+    \`Median [Min, Max]\` = fmt_med_rng(AGE)) |>
+  pivot_longer(-TRT) |> pivot_wider(names_from=TRT)
+
+cat_blk <- function(col, label)
+  wide_counts(d, col, N, lvls) |>
+  mutate(Variable = label, .before = 1)`, [
+  "Age is summarized as continuous (mean/SD, median/range); sex and race are summarized as categorical via <code class=\"mono\">wide_counts()</code>",
+  "<code class=\"mono\">SEX</code> is relabeled Female/Male and <code class=\"mono\">RACE</code> is title-cased before counting, so display formatting never leaks into the aggregation logic",
+  "Final table is a <code class=\"mono\">bind_rows()</code> stack: header row, age block, sex block, race block"
+]);
+
+codeSlide("Table Builder 2/5", "build_dispos() â Disposition (T14.1.2)", `status <- wide_counts(
+  mutate(d, EOSSTT = as.character(EOSSTT)),
+  "EOSSTT", N, lvls) |>
+  mutate(Category = c("Completed","Discontinued")[
+    match(Category, c("COMPLETED","DISCONTINUED"))]) |>
+  replace_na(list(Category = "Other"))`, [
+  "Defensive check first: if <code class=\"mono\">EOSSTT</code> isn't in the uploaded data, the function returns a graceful \"data unavailable\" placeholder table instead of erroring the whole app",
+  "Reuses <code class=\"mono\">wide_counts()</code> again the third table to lean on the same shared helper",
+  "Raw ADaM codes (<code class=\"mono\">COMPLETED</code>) are relabeled to sentence case for clinical readability at render time only"
+]);
+
+codeSlide("Table Builder 3/5", "build_ae_overview() â TEAE Overview (T14.3.1)", `rows <- list(
+  list("Any TEAE", quote(TRUE)),
+  list("Any Serious TEAE", quote(AESER=="Y")),
+  list("TEAE Leading to Death",
+       quote(!is.na(AESDTH)&AESDTH=="Y")),
+  ...
+)
+result <- map_dfr(rows, ~cnt(base_ae, .x[[2]]))`, [
+  "Each row is a <code class=\"mono\">quote()</code>d condition unevaluated R code stored as data, then evaluated later inside <code class=\"mono\">cnt()</code> via <code class=\"mono\">filter(!!cond_expr)</code>",
+  "This pattern makes adding a new TEAE category (e.g. \"Leading to Dose Reduction\") a one-line addition to the <code class=\"mono\">rows</code> list, no new function needed",
+  "<code class=\"mono\">tryCatch()</code> around <code class=\"mono\">cnt()</code> means a missing variable degrades to \"N/A\" per-row rather than crashing the table"
+]);
+
+codeSlide("Table Builder 4/5", "build_ae_socpt() â AE by SOC/PT (T14.3.2), part 1", `mk_counts <- function(id_cols) {
+  d_ae |>
+    distinct(USUBJID, TRT, !!!syms(id_cols)) |>
+    count(TRT, !!!syms(id_cols)) |>
+    mutate(pct = 100 * n / N[as.character(TRT)]) |>
+    pivot_wider(id_cols=id_cols, names_from=TRT,
+       values_from=c(val,pct))
+}
+soc_df <- mk_counts("AEBODSYS")
+pt_df  <- mk_counts(c("AEBODSYS","AEDECOD"))`, [
+  "<code class=\"mono\">distinct(USUBJID, ...)</code> before counting is the key correctness step: a subject with 3 events of the same PT is still counted <i>once</i> for incidence",
+  "One helper, <code class=\"mono\">mk_counts()</code>, generates both the SOC-level and PT-level count tables by just changing which grouping columns are passed in",
+  "<code class=\"mono\">!!!syms(id_cols)</code> is tidy-eval splicing a character vector of column names into <code class=\"mono\">dplyr</code> verbs that normally expect bare column names"
+]);
+
+codeSlide("Table Builder 4/5", "build_ae_socpt() â AE by SOC/PT (T14.3.2), part 2", `rows <- map_dfr(soc_sorted$AEBODSYS, function(soc) {
+  soc_row <- filter(soc_df, AEBODSYS==soc) |>
+    mutate(Level = "SOC")
+  pt_rows <- filter(pt_df, AEBODSYS==soc) |>
+    arrange(desc(pct)) |>
+    mutate(Term = paste0("   ", Term),
+           Level = "PT")
+  bind_rows(soc_row, pt_rows)
+})`, [
+  "SOC rows are sorted by mean incidence across arms; within each SOC block, PT rows are sorted by their own descending incidence a nested sort, built with two <code class=\"mono\">arrange()</code> calls at two levels of <code class=\"mono\">map_dfr()</code>",
+  "PT rows get 3 leading spaces prepended to <code class=\"mono\">Term</code> for visual indentation a simple text trick that avoids a more complex nested-table rendering approach",
+  "<code class=\"mono\">Level</code> (\"SOC\" / \"PT\") travels through to the <code class=\"mono\">gt</code> renderer, which uses it purely for styling (bold SOC rows), then is dropped before export"
+]);
+
+codeSlide("Table Builder 5/5", "build_ae_sev() â AE by Max Severity (T14.3.3)", `sev_lvls <- c("MILD","MODERATE","SEVERE")
+
+result <- wide_counts(
+  mutate(d_ae, AESEV = factor(AESEV, levels=sev_lvls)) |>
+    distinct(USUBJID, TRT, AESEV),
+  "AESEV", N, lvls
+) |> rename(Severity = AESEV)`, [
+  "The 4th call site for <code class=\"mono\">wide_counts()</code> in the app the same helper now handles a third categorical variable with zero new counting logic",
+  "<code class=\"mono\">distinct(USUBJID, TRT, AESEV)</code> again ensures each subject is counted once per severity level, not once per event",
+  "Explicit factor <code class=\"mono\">levels</code> ordering keeps Mild &rarr; Moderate &rarr; Severe in clinical reading order regardless of alphabetical sort"
+]);
+
+setPart("Code Walkthrough Â· gt Renderer");
+
+codeSlide("The gt Renderer, 1/2", "to_gt() â structure and spanners", `gt_tbl <- df |>
+  select(-any_of("Level")) |>
+  gt(rowname_col = first_col) |>
+  tab_header(title = md(paste0("**",title,"**"))) |>
+  tab_spanner(label = md("**Treatment Group**"),
+              columns = all_of(active_trt))`, [
+  "Every one of the 5 tables passes through this <i>single</i> renderer table-specific logic lives in the <code class=\"mono\">build_*()</code> functions, presentation logic lives here, once",
+  "<code class=\"mono\">Level</code> (used only for internal styling decisions) is dropped from the visible output right before rendering",
+  "The \"Treatment Group\" spanner groups arm columns under one header, visually separating them from the row-label column"
+]);
+
+codeSlide("The gt Renderer, 2/2", "to_gt() â conditional styling", `if (tbl_type == "ae_socpt" && "Level" %in% names(df)) {
+  soc_rows <- which(df$Level == "SOC")
+  gt_tbl <- gt_tbl |> tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(rows = soc_rows, columns = first_col))
+}
+if (has_total) gt_tbl <- gt_tbl |>
+  tab_style(style = cell_fill(color="#F0F4FF"),
+            locations = cells_body(columns="Total"))`, [
+  "Row-level bolding for SOC rows is conditional on both the table type <i>and</i> the presence of the <code class=\"mono\">Level</code> column a defensive double-check",
+  "The Total column, when shown, gets a distinct fill color and bold weight in both the body and the header, so it visually reads as a summary column, not just another arm",
+  "Closes with <code class=\"mono\">tab_source_note()</code> stating the analysis set and percentage basis required context for a clinical reader on every export"
+]);
+
+setPart("Code Walkthrough Â· Figure Builders");
+
+codeSlide("Shared Figure Theme", "tfl_theme â one look for every chart", `tfl_theme <- theme_classic(base_size = 13) +
+  theme(
+    plot.title    = element_text(face="bold", size=13),
+    plot.subtitle = element_text(color="grey40"),
+    legend.position = "bottom",
+    strip.background = element_rect(fill="#E3EBF6"),
+    panel.grid.major.y = element_line(color="grey92")
+  )`, [
+  "Added to every <code class=\"mono\">ggplot</code> object with <code class=\"mono\">+ tfl_theme</code> one theme object, reused across boxplot, histogram, and AE bar chart",
+  "Only horizontal gridlines are kept (<code class=\"mono\">panel.grid.major.y</code>) a deliberate choice to reduce chartjunk while keeping value-reading easy",
+  "Legend fixed at the bottom keeps every figure's layout predictable when embedded in a report or slide"
+]);
+
+codeSlide("Figure Builder 1/3", "build_boxplot() â Distribution by Treatment (F14.2.1)", `pl <- ggplot(d, aes(TRT, .data[[yvar]], fill=TRT))
+if (show_violin) pl <- pl + geom_violin(alpha=0.2)
+pl <- pl + geom_boxplot(alpha=0.7,
+  outlier.shape = if(show_pts) NA else 19)
+if (show_pts) pl <- pl + geom_jitter(aes(color=TRT),
+  width=0.12, alpha=0.5)`, [
+  "Layers are added conditionally based on live user toggles <code class=\"mono\">show_violin</code> and <code class=\"mono\">show_pts</code> by mutating the same <code class=\"mono\">pl</code> object in place before it's returned",
+  "When jittered points are shown, boxplot outliers are hidden (<code class=\"mono\">outlier.shape = NA</code>) to avoid double-plotting the same subjects",
+  "N per arm is baked directly into the x-axis labels: <code class=\"mono\">\"Placebo\\n(n=64)\"</code> the same \"never hide the N\" principle from Session 1, applied to a figure"
+]);
+
+codeSlide("Figure Builder 2/3", "build_histogram() â Continuous Variable Distribution (F14.2.2)", `if (facet_trt) {
+  pl <- pl + geom_histogram(bins=bins) +
+    facet_wrap(vars(TRT), ncol=1)
+} else {
+  pl <- pl + geom_histogram(bins=bins,
+    position="identity", alpha=0.55)
+}
+if (show_density) pl <- pl + geom_density(
+  aes(y=after_stat(count*diff(range)/bins), color=TRT))`, [
+  "Two display modes toggle the whole chart structure: faceted-by-treatment (stacked panels) vs. overlaid with transparency same data, different comparison strategy",
+  "<code class=\"mono\">after_stat(count * diff(range)/bins)</code> rescales the density curve's y-axis to match the histogram's count axis, so overlay actually lines up visually",
+  "Bin count is a live <code class=\"mono\">sliderInput</code> a direct, visible lesson in how binning choice changes a distribution's apparent shape"
+]);
+
+codeSlide("Figure Builder 3/3", "build_ae_bar() â Top TEAEs by Incidence (F14.3.1)", `adae |> filter(TRTEMFL=="Y") |>
+  distinct(USUBJID, TRT, AEDECOD) |>
+  count(TRT, AEDECOD) |>
+  mutate(pct = 100*n/N[as.character(TRT)]) |>
+  group_by(AEDECOD) |> mutate(max_pct=max(pct)) |>
+  filter(AEDECOD %in% slice_max(..., n=top_n)$AEDECOD) |>
+  mutate(AEDECOD = fct_reorder(AEDECOD, max_pct)) |>
+  ggplot(aes(pct, AEDECOD, fill=TRT)) + geom_col(position=position_dodge(0.7))`, [
+  "\"Top N\" ranking uses each term's <i>maximum</i> incidence across any single arm a term dominant in only one arm still surfaces, which matters for safety signal review",
+  "<code class=\"mono\">fct_reorder()</code> sorts the y-axis by that ranking so the chart reads top-to-bottom as highest-to-lowest incidence, standard practice for incidence bar charts",
+  "<code class=\"mono\">top_n</code> is a live slider (5&ndash;25 terms) the reviewer controls signal-to-noise directly"
+]);
+
+setPart("Code Walkthrough Â· UI Layer");
+
+codeSlide("UI Shell", "page_sidebar() + bslib theming", `ui <- page_sidebar(
+  title = tags$span(tags$b("TFL"), " Builder"),
+  theme = bs_theme(
+    bootswatch = "flatly", primary = BRAND_BLUE,
+    font_scale = 0.95, "navbar-bg" = BRAND_BLUE
+  ),
+  sidebar = sidebar(width = 290, ...),
+  navset_tab(id = "main_tabs", ...)
+)`, [
+  "<code class=\"mono\">bslib::bs_theme()</code> gives full Bootstrap 5 theming from four arguments no custom CSS file needed for brand colors",
+  "<code class=\"mono\">page_sidebar()</code> is a bslib layout primitive: a persistent left sidebar plus a main content area, which is exactly the global-controls / per-tab-content split this app needs",
+  "The sidebar carries only <i>global</i> concerns (data source); everything analysis-specific lives inside each tab, one layer down"
+]);
+
+codeSlide("UI Â· Global Sidebar", "Data source: built-in vs. upload", `radioButtons("data_source", NULL,
+  choices = c("pharmaverseadam (built-in)"="builtin",
+              "Upload my own data files"="upload"))
+
+conditionalPanel("input.data_source == 'upload'",
+  fileInput("upload_files", ...,
+    accept = c(".sas7bdat",".csv",".rds")))`, [
+  "<code class=\"mono\">conditionalPanel()</code> uses a JavaScript expression string, not R it toggles visibility client-side with zero server round-trip, so the UI feels instant",
+  "Accepting <code class=\"mono\">.sas7bdat</code> directly (via <code class=\"mono\">haven</code>) means a study team can point the app at real SAS transport-style datasets, not just CSV exports",
+  "Files are matched to ADSL/ADAE/etc. by filename, not by asking the user to manually label each upload"
+]);
+
+codeSlide("UI Â· Tables Tab", "Split layout: controls left, output right", `layout_columns(col_widths = c(3,9),
+  div(style="overflow-y:auto;...",
+    ctrl_card(
+      selectInput("table_type", ..., choices=TABLE_CHOICES),
+      uiOutput("tbl_pop_flag_ui"),
+      uiOutput("tbl_trt_arms_ui"),
+      uiOutput("table_specific_ui")
+    )),
+  card(gt_output("tbl_output"), full_screen=TRUE)
+)`, [
+  "A consistent 3/9 column split repeats across the Tables and Figures tabs one visual language for \"configure, then view\"",
+  "Population flag, treatment variable, and treatment arms are rendered via <code class=\"mono\">uiOutput()</code> server-generated, because their choices depend on <i>which dataset is actually loaded</i>",
+  "<code class=\"mono\">full_screen = TRUE</code> on the output card gives reviewers a one-click expand for detailed reading, a small but meaningful usability touch"
+]);
+
+focus("UI Â· Small Helpers", "status_chip() and ctrl_card() â tiny, reused UI functions", `
+  <div class="grid2" style="height:auto;">
+    <div><h3>status_chip()</h3><p>Renders a colored pill (checkmark ADSL 254 rows) showing which required datasets are loaded. Called twice once for ADSL, once for ADAE from one function definition.</p></div>
+    <div><h3>ctrl_card()</h3><p>A styled wrapper around <code class="mono">bslib::card()</code> with a fixed grey background and padding, used for every control panel in the app so the sidebar controls look visually distinct from the output cards.</p></div>
+  </div>
+`);
+
+setPart("Code Walkthrough Â· Server Layer");
+
+codeSlide("Server Â· Data Loading", "datasets() â the one reactive everything depends on", `datasets <- reactive({
+  if (input$data_source == "builtin") return(BUILTIN)
+  req(input$upload_files)
+  withProgress(message = "Loading datasets...", {
+    for (i in seq_len(nrow(input$upload_files))) {
+      nm <- toupper(file_path_sans_ext(...))
+      df <- switch(ext, "sas7bdat"=haven::read_sas(fp), ...)
+      result[[nm]] <- df
+    }
+  })
+})`, [
+  "This is the <i>only</i> reactive that reads <code class=\"mono\">input$data_source</code> or <code class=\"mono\">input$upload_files</code> directly every other reactive in the app depends on <code class=\"mono\">datasets()</code>, never on the raw inputs",
+  "<code class=\"mono\">req()</code> means: if no files are uploaded yet, this reactive simply doesn't run no error, the UI just waits",
+  "<code class=\"mono\">withProgress()</code> shows a native Shiny progress bar during file parsing, important once someone uploads a large ADAE"
+]);
+
+codeSlide("Server Â· Dynamic Choices", "pop_flags_available() and trt_vars_available()", `pop_flags_available <- reactive({
+  fl <- adsl_cols()[grepl("FL$", adsl_cols())]
+  valid <- fl[sapply(fl, function(v)
+    all(adsl[[v]] %in% c("Y","N",NA)))]
+  c("All Subjects (no filter)"="__ALL__", valid)
+})`, [
+  "Population flags aren't hardcoded to <code class=\"mono\">SAFFL</code> any column ending in <code class=\"mono\">FL</code> that only contains Y/N/NA values is auto-detected as a valid population flag",
+  "This is what makes the app work against <i>any</i> uploaded ADSL, not just the specific one shipped in the demo",
+  "Treatment variables use a similar pattern: try common names (<code class=\"mono\">TRT01A</code>, <code class=\"mono\">ARM</code>...) first, fall back to a regex match on <code class=\"mono\">^TRT[0-9]</code>"
+]);
+
+codeSlide("Server Â· Reusable Reactive Factory", "trt_levels_for() â a function that returns a reactive", `trt_levels_for <- function(trt_var_input, pop_flag_input) {
+  reactive({
+    req(trt_var_input(), datasets()$ADSL)
+    pop <- if (pop_flag_input() != "__ALL__")
+      filter(adsl, .data[[pop_flag_input()]]=="Y") else adsl
+    sort(unique(as.character(pop[[trt_var_input()]])))
+  })
+}
+tbl_trt_levels <- trt_levels_for(reactive(input$tbl_trt_var), ...)
+fig_trt_levels <- trt_levels_for(reactive(input$fig_trt_var), ...)`, [
+  "A <i>function that builds and returns a reactive</i> called once for the Tables tab, once for the Figures tab, avoiding duplicated reactive logic between two nearly-identical control panels",
+  "Taking reactives as arguments (<code class=\"mono\">trt_var_input</code>, <code class=\"mono\">pop_flag_input</code>) rather than plain values keeps the returned reactive correctly wired into Shiny's dependency graph",
+  "\"Screen failure\" treatment levels are explicitly filtered out, since they're not a meaningful treatment arm for TFL purposes"
+]);
+
+codeSlide("Server Â· Table Pipeline", "table_data() â the dispatch reactive", `table_data <- reactive({
+  req(input$tbl_trt_arms, input$tbl_pop_flag, datasets()$ADSL)
+  withProgress(message = "Building table...", {
+    switch(input$table_type,
+      demog       = build_demog(adsl, trt, pop, trts, tot),
+      ae_socpt    = { req(adae)
+        build_ae_socpt(adsl, adae, trt, pop, trts, tot,
+          min_pct = input$min_pct %||% 0, sevs = input$sev_filter) },
+      ...)
+  })
+})`, [
+  "This is the \"switchboard\" the only place in the server that decides <i>which</i> <code class=\"mono\">build_*()</code> function to call, based on the dropdown selection",
+  "<code class=\"mono\">req(adae)</code> is nested inside the AE-specific branches only a demographics table doesn't need ADAE to exist, so it isn't blocked by a missing upload",
+  "The custom <code class=\"mono\">%||%</code> operator (defined at the bottom of the file) supplies a default when a control hasn't rendered yet, avoiding a <code class=\"mono\">NULL</code> error on first load"
+]);
+
+codeSlide("Server Â· Rendering & Export", "render_gt() and the three table download handlers", `output$tbl_output <- render_gt({
+  to_gt(req(table_data()), input$table_type,
+        TABLE_TITLES[input$table_type], lvls)
+})
+
+output$dl_tbl_docx <- downloadHandler(
+  filename = function() paste0(input$table_type,"_",Sys.Date(),".docx"),
+  content = function(f) {
+    ft <- flextable(out_df) |> bold(part="header") |> autofit()
+    doc <- read_docx() |> body_add_flextable(ft)
+    print(doc, target = f)
+  })`, [
+  "<code class=\"mono\">render_gt()</code> and every <code class=\"mono\">downloadHandler()</code> independently call <code class=\"mono\">table_data()</code> Shiny's reactive caching means the underlying computation runs once and is reused, not recomputed per output",
+  "HTML export uses <code class=\"mono\">gtsave()</code>, CSV export uses <code class=\"mono\">write.csv()</code> on the raw data frame, and Word export rebuilds the table in <code class=\"mono\">flextable</code> three renderers, one shared source of truth",
+  "The Word export is fully programmatic: <code class=\"mono\">officer::read_docx()</code> creates the document in memory, no Word template file is required"
+]);
+
+codeSlide("Server Â· Figure Pipeline", "active_plot() and the PNG/SVG download handlers", `active_plot <- reactive({
+  switch(input$figure_type,
+    boxplot = build_boxplot(adsl, trt, pop, trts,
+                 yvar=input$box_yvar, show_pts=input$box_pts, ...),
+    ae_bar  = { req(adae); build_ae_bar(adsl, adae, trt, pop, trts,
+                 top_n=input$ae_bar_topn) })
+})
+output$fig_output <- renderPlot(active_plot(), res = 110)
+output$dl_fig_png <- downloadHandler(..., content = function(f)
+  ggsave(f, active_plot(), width=10, height=6.5, dpi=300))`, [
+  "Mirrors <code class=\"mono\">table_data()</code> exactly same dispatch-by-<code class=\"mono\">switch()</code> pattern, applied to figures instead of tables, for a consistent codebase",
+  "<code class=\"mono\">renderPlot(..., res = 110)</code> sets screen resolution for on-screen display; <code class=\"mono\">ggsave(..., dpi = 300)</code> uses a separate, higher, publication-quality resolution for the actual export the same plot object serves both",
+  "SVG export uses the same call with <code class=\"mono\">device = \"svg\"</code>, giving reviewers a vector format for embedding in slides without quality loss"
+]);
+
+diagramSlide("Code Walkthrough Â· Recap", "End-to-end: one click in the Tables tab", [
+  [ {t:"User picks table + filters", s:"selectInput, checkboxGroupInput", cls:"accent"}, {t:"table_data()", s:"switch() dispatches to build_*()"}, {t:"build_ae_socpt() etc.", s:"prep_adsl() -> wide_counts() -> rows", cls:"teal"} ],
+  [ null, {t:"to_gt()", s:"shared renderer, styling"}, {t:"render_gt() / downloadHandler", s:"screen or HTML/Word/CSV export", cls:"amber"} ]
+], {h:"Why this holds up under review", p:"Every path screen render and every export format passes through the exact same <code class=\"mono\">table_data()</code> reactive. There is no separate code path that could silently drift out of sync with what the reviewer sees on screen."});
+
+setPart("Session 4 Â· Hands-On Build");
+divider("04", "Mini TFL Builder, Interactivity, and Output Exports", "Hands-on development of a mini TFL builder in R Shiny, with the audience building alongside.", ["13:30 â 15:30","Speaker, Venkatesh + Audience"]);
+
+diagramSlide("13:30 â 14:15 Â· Speaker, Venkatesh + Audience", "Dashboard layout, navigation, and AE summary table generation", [
+  [ {t:"1. Select Treatment Arm", s:"checkboxGroupInput", cls:"accent"}, {t:"2. Select Safety Population", s:"population-flag dropdown", cls:"teal"}, {t:"3. Generate AE Summary Table", s:"reactive gt render", cls:"amber"} ]
+], {h:"What the audience builds", p:"Starting from a blank sidebar and an empty output card, we wire up the three controls live, connect them to <code class=\"mono\">table_data()</code>, and watch the AE Overview table populate in real time as each filter is added."});
+
+concept("14:15 â 15:00 Â· Audience", "Adding interactivity for reviewing and exploring outputs",
+  "AE incidence visualization", [
+    "Bar charts ranked by incidence, matching the <code class=\"mono\">build_ae_bar()</code> pattern from the code walkthrough",
+    "Treatment comparison via grouped/dodged bars, same <code class=\"mono\">TRT_PALETTE</code> as every table",
+    "Dynamic figure updates as the top-N slider or treatment arm selection changes"
+  ],
+  "Data filtering & reactive expressions", [
+    "Practice writing a <code class=\"mono\">reactive()</code> that depends on 2&ndash;3 inputs at once",
+    "See what happens when a dependency is missing and how <code class=\"mono\">req()</code> handles it gracefully",
+    "Discuss why computation lives in the reactive, not inside <code class=\"mono\">render*()</code>, for reuse across screen and export"
+  ]
+);
+
+three("15:00 â 15:30 Â· Audience + Mahesh", "Exporting outputs to PDF and Word at a high level", [
+  {h:"Download/export functionality", p:"Wiring a downloadHandler() to an existing reactive the pattern is identical whether the target format is HTML, DOCX, PNG, or SVG."},
+  {h:"Reusability considerations", p:"Because export handlers call the same reactive as the on-screen render, adding a new export format never means re-deriving the underlying data."},
+  {h:"Automation considerations", p:"The same build_*() functions could run outside Shiny entirely e.g. batch-rendered nightly since they take plain data frames, not reactive objects."}
+]);
+
+setPart("Session 5 Â· AI & LLM Integration");
+divider("05", "AI and LLM Integration in R Shiny and TFL Apps", "The next evolution of the TFL Builder: describe the output you need in plain language, and let an LLM route the request to the same validated functions.", ["15:45 â 17:15","Venkatesh + Mahesh"]);
+
+three("15:45 â 16:15 Â· Venkatesh", "High-level AI/LLM integration patterns for R Shiny (with Ollama or OpenAI API)", [
+  {h:"Pattern A â Intent router (chosen)", p:"LLM maps a natural-language request to a validated function call and its arguments. No LLM-generated code ever executes."},
+  {h:"Pattern B â Narrative generator", p:"LLM summarizes an already-computed table or figure into plain-language commentary for a reviewer output, not computation."},
+  {h:"Pattern C â Local model via Ollama", p:"Runs entirely on-prem for compliance-sensitive settings same intent-router pattern, no data leaves the network."}
+]);
+
+focus("15:45 â 16:15 Â· Venkatesh", "Why Pattern A: LLM as intent router, not code generator", `
+  <p style="color:var(--muted);line-height:1.6;">The LLM never writes or executes arbitrary R. Instead, its job is narrow: read a request, and return a structured decision which existing, validated <code class="mono">build_*()</code> function to call and with what arguments. This is the same "function calling" capability both OpenAI's and Anthropic's Claude APIs expose natively.</p>
+  <div class="pillrow" style="margin-top:14px;"><span class="pill">structured output</span><span class="pill">function calling</span><span class="pill">JSON schema</span><span class="pill">deterministic execution</span></div>
+`);
+
+diagramSlide("Planned Architecture", "From natural-language request to rendered TFL", [
+  [ {t:"Analyst prompt", s:"\"AE table for the SAF population, severe events only\"", cls:"accent"}, {t:"Shiny chat module", s:"captures context: loaded ADaM, current filters"}, {t:"LLM API call", s:"OpenAI / Claude structured function-call response", cls:"teal"} ],
+  [ null, {t:"Parameter mapping", s:"maps to existing build_*() functions not free-form R execution", cls:"amber"}, {t:"Rendered gt / ggplot", s:"same review + export path as manual selection"} ]
+], {h:"Guardrail by design", p:"The LLM chooses which validated builder function and arguments to call it does not generate or execute arbitrary R code. This keeps every AI-assisted output as traceable and reproducible as a manually built one."});
+
+focus("16:15 â 16:45 Â· Venkatesh", "Using a chatbot interface in R Shiny", `
+  <p style="color:var(--muted);line-height:1.6;">A chat panel added alongside the existing Tables/Figures tabs. Internally it's just one more Shiny module: a scrollable message history built from a <code class="mono">reactiveVal()</code> list, a <code class="mono">textAreaInput</code> for the next message, and an <code class="mono">observeEvent()</code> on the send button that calls the LLM API and appends the response.</p>
+  <ul class="clean" style="margin-top:12px;"><li>Message history stored client-session-side, never persisted beyond the session by default</li><li>Each response can render either plain text or trigger a table/figure update in the adjoining tab</li><li>A visible "thinking / calling API..." state uses the same <code class="mono">withProgress()</code> pattern already used for data loading</li></ul>
+`);
+
+codeSlide("16:15 â 16:45 Â· Venkatesh", "Chat module â the shape of the server-side call", `observeEvent(input$send, {
+  req(input$chat_msg)
+  reply <- call_llm(
+    system = SYSTEM_PROMPT,
+    tools  = TFL_FUNCTION_SCHEMA,
+    user   = input$chat_msg,
+    context = list(datasets = names(datasets()),
+                    trt_arms = tbl_trt_levels())
+  )
+  if (reply$type == "function_call")
+    do.call(reply$fn, reply$args)   # e.g. build_ae_socpt(...)
+})`, [
+  "<code class=\"mono\">tools = TFL_FUNCTION_SCHEMA</code> is where the guardrail lives the LLM is only offered the app's existing <code class=\"mono\">build_*()</code> function signatures as callable \"tools\", nothing more general",
+  "<code class=\"mono\">context</code> passes the currently loaded dataset names and available treatment arms, so the model can't propose an arm that doesn't exist in the loaded data",
+  "<code class=\"mono\">do.call(reply$fn, reply$args)</code> is the only place a model's output touches execution and <code class=\"mono\">reply$fn</code> is validated against an allow-list before this line runs"
+]);
+
+concept("16:15 â 16:45 Â· Venkatesh", "Prompt design: system prompt & function schema",
+  "System prompt covers", [
+    "The app's domain: clinical TFLs, ADaM structure, population flags, treatment arms",
+    "An explicit instruction to always resolve ambiguity by asking a follow-up, never guessing a filter",
+    "The exact list of callable functions and what each argument means"
+  ],
+  "Function schema mirrors app.R", [
+    "One schema entry per <code class=\"mono\">build_*()</code> function, argument names matching exactly",
+    "Enumerated values for population flag and severity, sourced live from <code class=\"mono\">pop_flags_available()</code>",
+    "Schema is regenerated whenever the app's own function set changes single source of truth"
+  ]
+);
+
+focus("Guardrails", "Why we don't let the LLM write or execute R code directly", `
+  <ul class="clean">
+    <li><b>Determinism</b> the same intent always maps to the same validated function, so results stay reproducible run to run</li>
+    <li><b>Auditability</b> every AI-assisted output can be traced to a specific function call and argument set, same as a manual selection</li>
+    <li><b>Safety</b> no arbitrary code execution surface inside a clinical application, regardless of what a prompt injection might attempt</li>
+    <li><b>Validation reuse</b> the <code class="mono">build_*()</code> functions are the same ones already reviewed in Sessions 3&ndash;4; the AI layer adds a front door, not a new computation path</li>
+  </ul>
+`);
+
+three("16:45 â 17:15 Â· Venkatesh + Mahesh", "Illustrative use case with the mini TFL app", [
+  {h:"1 Â· User prompt intent", p:"\"Show me AE by SOC and PT for the safety population, severe events only, minimum 5% incidence\" is parsed to a JSON intent object."},
+  {h:"2 Â· Intent function call", p:"{fn: \"build_ae_socpt\", pop_flag: \"SAFFL\", sevs: [\"SEVERE\"], min_pct: 5} is validated against the schema and current data."},
+  {h:"3 Â· Function call gt render", p:"The exact same build_ae_socpt() and to_gt() from the code walkthrough render the result no new rendering path."}
+]);
+
+focus("16:45 â 17:15 Â· Venkatesh + Mahesh", "Handling ambiguity and follow-up questions", `
+  <p style="color:var(--muted);line-height:1.6;">If a request under-specifies a required argument e.g. no population flag given the system prompt instructs the model to ask a clarifying question rather than default silently. This mirrors how a programmer would handle an ambiguous ad-hoc request from a study team: clarify before producing a number that could be misread.</p>
+`);
+
+focus("16:45 â 17:15 Â· Venkatesh + Mahesh", "Sample conversation transcript", `
+  <div class="codepanel" style="font-family:'IBM Plex Sans',sans-serif;">
+    <p style="margin:0 0 10px;"><b style="color:var(--code-accent);">Analyst:</b> Show me the AE summary by SOC and PT for the safety population, severe events only, minimum 5% incidence.</p>
+    <p style="margin:0 0 10px;"><b style="color:var(--code-string);">Assistant:</b> Building AE by SOC/PT Safety Analysis Set (SAFFL), Severe events, >=5% incidence in any arm. <i>[table renders in the Tables tab]</i></p>
+    <p style="margin:0 0 10px;"><b style="color:var(--code-accent);">Analyst:</b> Now compare that to Moderate and Severe combined.</p>
+    <p style="margin:0;"><b style="color:var(--code-string);">Assistant:</b> Updating severity filter to Moderate + Severe, same population and threshold. <i>[table re-renders]</i></p>
+  </div>
+`);
+concept("Design Considerations", "OpenAI API â what it brings",
+  "Strengths", [
+    "Mature function-calling / structured-output support, widely documented",
+    "Broad ecosystem familiarity for engineering teams already using it elsewhere",
+    "Competitive latency for short, structured intent-parsing calls"
+  ],
+  "Considerations", [
+    "Confirm the specific data-use and retention terms for the account tier in use",
+    "Cost scales with context size keep only schema + metadata in the prompt, never subject-level data",
+    "Model version pinning matters for a validated deployment track it like a package version"
+  ]
+);
+concept("Design Considerations", "Claude API â what it brings",
+  "Strengths", [
+    "Strong structured-output and tool-use behavior, well suited to the intent-router pattern",
+    "Large context window headroom if richer schema/context needs to be passed",
+    "Anthropic's enterprise terms are a natural fit for teams already governed by them"
+  ],
+  "Considerations", [
+    "Same governance homework as any vendor API confirm data residency and retention terms",
+    "Latency and cost should be benchmarked against the actual function-schema size used here",
+    "Model version pinning applies here too, for the same validation reasons"
+  ]
+);
+focus("Design Considerations", "Ollama â the on-prem fallback", `
+  <p style="color:var(--muted);line-height:1.6;">Ollama runs an open-weight model locally or on internal infrastructure, using the same intent-router pattern a request comes in, the model returns a structured function call, <code class="mono">app.R</code>'s existing functions execute it. No data, not even metadata, leaves the network. The trade-off is model capability: open-weight models may need more careful prompt engineering to match hosted-API reliability on structured output.</p>
+`);
+
+focus("Data Privacy Considerations", "Clinical data and LLM APIs â what has to be true first", `
+  <ul class="clean">
+    <li>Only <b>metadata</b> column names, population flags, arm labels needs to reach the LLM API for intent parsing; subject-level PHI/PII does not need to leave the app</li>
+    <li>Redact or aggregate before any data value (vs. schema) is ever included in a prompt</li>
+    <li>Confirm the chosen API vendor's data-use and retention terms explicitly permit this use case before go-live</li>
+    <li>An on-prem model via Ollama removes this question entirely for the most compliance-sensitive deployments</li>
+  </ul>
+`);
+
+focus("Roadmap", "What's next after this workshop", `
+  <ul class="clean">
+    <li>Formalize the function schema for all 5 table types and 3 figure types shown today</li>
+    <li>Prototype the chat module against a sandboxed, non-PHI dataset first</li>
+    <li>Pilot with one study team on ad-hoc review requests before wider rollout</li>
+    <li>Evaluate Ollama-hosted models for teams requiring fully on-prem processing</li>
+  </ul>
+`);
+
+setPart("Appendix Â· Reference");
+
+concept("Appendix", "ADaM variables this app relies on â ADSL", "Subject-level", [
+    "<code class=\"mono\">USUBJID</code> unique subject identifier, the join key to ADAE",
+    "<code class=\"mono\">SAFFL</code> and other <code class=\"mono\">*FL</code> flags auto-detected population flags",
+    "<code class=\"mono\">TRT01A</code> / <code class=\"mono\">TRT01P</code> / <code class=\"mono\">ARM</code> candidate treatment variables",
+    "<code class=\"mono\">AGE</code>, <code class=\"mono\">SEX</code>, <code class=\"mono\">RACE</code>, <code class=\"mono\">EOSSTT</code> demographics & disposition inputs"
+], null);
+
+concept("Appendix", "ADaM variables this app relies on â ADAE", "Event-level", [
+    "<code class=\"mono\">TRTEMFL</code> treatment-emergent flag, filters to on-treatment events",
+    "<code class=\"mono\">AEBODSYS</code> / <code class=\"mono\">AEDECOD</code> System Organ Class / Preferred Term",
+    "<code class=\"mono\">AESEV</code> severity (Mild/Moderate/Severe)",
+    "<code class=\"mono\">AESER</code>, <code class=\"mono\">AESDTH</code>, <code class=\"mono\">AEACN</code> seriousness, fatality, and action-taken flags for the Overview table"
+], null);
+
+focus("Appendix Â· Function Index", "Data & filtering functions", `
+  <ul class="clean">
+    <li><code class="mono">prep_adsl()</code> apply population + treatment filters, compute N, synthesize Total</li>
+    <li><code class="mono">wide_counts()</code> count zero-fill format pivot to wide, reused 4x</li>
+    <li><code class="mono">hdr_row()</code> build the "(N=xx)" header row</li>
+    <li><code class="mono">fmt_n_pct()</code>, <code class="mono">fmt_mean_sd()</code>, <code class="mono">fmt_med_rng()</code> display formatters</li>
+  </ul>
+`);
+
+focus("Appendix Â· Function Index", "Table, figure & rendering functions", `
+  <ul class="clean">
+    <li><code class="mono">build_demog()</code>, <code class="mono">build_dispos()</code>, <code class="mono">build_ae_overview()</code>, <code class="mono">build_ae_socpt()</code>, <code class="mono">build_ae_sev()</code> the 5 table builders</li>
+    <li><code class="mono">to_gt()</code> the single shared gt renderer for all 5 tables</li>
+    <li><code class="mono">build_boxplot()</code>, <code class="mono">build_histogram()</code>, <code class="mono">build_ae_bar()</code> the 3 figure builders, all styled with <code class="mono">tfl_theme</code></li>
+    <li><code class="mono">status_chip()</code>, <code class="mono">ctrl_card()</code> small reusable UI components</li>
+  </ul>
+`);
+
+three("Appendix", "Testing & validation considerations", [
+  {h:"Unit-testable core", p:"Every build_*() function takes plain data frames and returns a plain data frame testable with testthat, independent of a running Shiny session."},
+  {h:"Golden-output comparisons", p:"Snapshot a known-good table/figure per builder and diff future runs against it, the same discipline as validating a SAS macro."},
+  {h:"UI-level checks", p:"shinytest2 can drive the running app end-to-end select filters, confirm the rendered table matches expectation."}
+]);
+
+focus("Appendix", "Common pitfalls when building this kind of app", `
+  <ul class="clean">
+    <li>Filtering logic duplicated per table instead of centralized in one <code class="mono">prep_adsl()</code>-style function the first thing that drifts out of sync</li>
+    <li>Hardcoding a population flag or treatment variable name instead of detecting it from the loaded data</li>
+    <li>A separate, hand-written code path for export that silently diverges from the on-screen render</li>
+    <li>No explicit denominator (N) shown next to percentages impossible for a reviewer to sanity-check</li>
+  </ul>
+`);
+
+focus("Appendix", "Glossary of acronyms used today", `
+  <div class="grid2" style="height:auto;">
+    <ul class="clean"><li><b>TFL</b> Tables, Figures & Listings</li><li><b>ADaM</b> Analysis Data Model</li><li><b>SOC / PT</b> System Organ Class / Preferred Term</li><li><b>TEAE</b> Treatment-Emergent Adverse Event</li></ul>
+    <ul class="clean"><li><b>SAF</b> Safety Analysis Set</li><li><b>DSMB</b> Data Safety Monitoring Board</li><li><b>CRA / DM</b> Clinical Research Associate / Data Management</li><li><b>PHI/PII</b> Protected/Personally Identifiable Information</li></ul>
+  </div>
+`);
+
+focus("Appendix", "A note on 21 CFR Part 11 & validation posture", `
+  <p style="color:var(--muted);line-height:1.6;">Today's demo app is a teaching tool, not a validated deliverable. Moving a pattern like this into a submission-adjacent workflow means the same rigor applied to any statistical programming: documented requirements, IQ/OQ/PQ-style testing of each <code class="mono">build_*()</code> function, access controls on who can deploy changes, and an audit trail for what filters produced a given export.</p>
+`);
+
+focus("Appendix", "Contact & follow-up", `
+  <div class="presenter-card">
+    <div class="avatar">MD</div>
+    <div><div class="pname">Mahesh Divakaran</div><div class="prole">Senior Tech Lead &ndash; R Developer, Ephicacy Life Science Analytics</div></div>
+  </div>
+  <p style="margin-top:16px;color:var(--muted);">Reach out after the workshop for the full <code class="mono">app.R</code> source, the slide deck, or to discuss piloting the LLM-assisted TFL pattern with your team.</p>
+`);
+
+focus("Appendix", "Resources & further reading", `
+  <div class="pillrow" style="gap:10px;">
+    <span class="pill">mastering-shiny.org</span><span class="pill">rstudio.github.io/bslib</span><span class="pill">gt.rstudio.com</span>
+    <span class="pill">pharmaverse.org</span><span class="pill">ggplot2-book.org</span><span class="pill">CDISC ADaM IG</span>
+  </div>
+  <p style="margin-top:14px;color:var(--muted);">All example code in this deck is drawn directly from today's <code class="mono">app.R</code> copies are available from the workshop organizers on request.</p>
+`);
+
+setPart("Closing");
+divider("End", "Closing Session: Workshop Summary", "What to take back to your team, and an open floor for questions.", ["17:30 â 18:00","IASCT EC member"]);
+
+three("Key Takeaways", "Three ideas worth remembering", [
+  {h:"01 Â· One reactive spine", p:"Filter once population, treatment, arms and every table and figure inherits it consistently."},
+  {h:"02 Â· Shared renderers", p:"One to_gt(), one tfl_theme, one export path per format less drift, easier QC."},
+  {h:"03 Â· AI as a front door", p:"LLMs route requests to validated functions they don't replace the statistical logic underneath."}
+]);
+
+focus("Q&A and Discussion", "17:15 â 17:30 Â· All", `
+  <p style="color:var(--muted);">Open floor happy to dig into any part of the <code class="mono">app.R</code> code, the LLM integration plan, or general R Shiny architecture questions.</p>
+`);
+
+SLIDES.push({part:PART, html: wrap(`
+  <div class="divider-content" style="display:flex;flex-direction:column;justify-content:center;flex:1;gap:20px;align-items:flex-start;">
+    <span class="eyebrow">Thank You</span>
+    <h1 style="font-size:clamp(2rem,4vw,3.4rem);">Let's build clinical dashboards<br>worth trusting.</h1>
+    <div class="presenter-card">
+      <div class="avatar">MD</div>
+      <div><div class="pname">Mahesh Divakaran</div><div class="prole">Senior Tech Lead &ndash; R Developer, Ephicacy Life Science Analytics</div></div>
+    </div>
+    <p style="color:var(--muted);">IASCT &middot; Building Interactive Dashboards for Smarter Insights Using R Shiny &middot; 12 September 2026</p>
+  </div>
+`,"justify-content:center;")});
+
+/* ============================================================
+   RUNTIME
+   ============================================================ */
+</script>

@@ -1,0 +1,3000 @@
+<title>Shiny Masterclass</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#F5F6FA; --surface:#FFFFFF; --surface-2:#EDEFF6; --border:#DCE0EC;
+  --text:#191C27; --text-muted:#5B6178; --text-faint:#8A90A6;
+  --accent:#3B54D6; --accent-strong:#2C3FAE; --accent-soft:#E7EAFB;
+  --accent-2:#0E8C7D; --accent-2-soft:#DFF4F0;
+  --danger:#C4432F; --danger-soft:#FBE7E2;
+  --code-bg:#12141C; --code-text:#DCE1F0; --code-border:#262A3B;
+  --shadow: 0 1px 2px rgba(20,24,40,.04), 0 8px 24px -12px rgba(20,24,40,.12);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C0E14; --surface:#13151E; --surface-2:#1A1D29; --border:#262A3A;
+    --text:#E8EAF2; --text-muted:#9DA3B8; --text-faint:#6E7386;
+    --accent:#8098FF; --accent-strong:#A6B8FF; --accent-soft:rgba(128,152,255,.14);
+    --accent-2:#4FD6C1; --accent-2-soft:rgba(79,214,193,.12);
+    --danger:#F0917E; --danger-soft:rgba(196,67,47,.16);
+    --code-bg:#0E1016; --code-text:#DCE1F0; --code-border:#232636;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C0E14; --surface:#13151E; --surface-2:#1A1D29; --border:#262A3A;
+  --text:#E8EAF2; --text-muted:#9DA3B8; --text-faint:#6E7386;
+  --accent:#8098FF; --accent-strong:#A6B8FF; --accent-soft:rgba(128,152,255,.14);
+  --accent-2:#4FD6C1; --accent-2-soft:rgba(79,214,193,.12);
+  --danger:#F0917E; --danger-soft:rgba(196,67,47,.16);
+  --code-bg:#0E1016; --code-text:#DCE1F0; --code-border:#232636;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box;}
+body{margin:0; background:var(--bg); color:var(--text); font-family:'Source Sans 3','Segoe UI',sans-serif; font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4{font-family:'Fraunces',Georgia,serif; font-weight:600; text-wrap:balance; color:var(--text); margin:0 0 .5em;}
+a{color:var(--accent);}
+code,pre,.mono{font-family:'JetBrains Mono',ui-monospace,monospace;}
+::selection{background:var(--accent-soft);}
+
+.shell{display:flex; min-height:100vh;}
+
+.sidebar{width:290px; flex:0 0 290px; border-right:1px solid var(--border); background:var(--surface); position:sticky; top:0; height:100vh; overflow-y:auto; padding:22px 16px 60px;}
+.brand{display:flex; align-items:center; gap:10px; padding:6px 10px 18px; border-bottom:1px solid var(--border); margin-bottom:10px;}
+.brand-mark{width:34px;height:34px;border-radius:9px; background:linear-gradient(155deg, var(--accent), var(--accent-2)); display:flex;align-items:center;justify-content:center; color:#fff; font-family:'Fraunces',serif; font-weight:700; font-size:18px; flex:none;}
+.brand-text{line-height:1.15;}
+.brand-text .t1{font-family:'Fraunces',serif; font-weight:600; font-size:15.5px;}
+.brand-text .t2{font-size:11.5px; color:var(--text-faint); letter-spacing:.03em;}
+.sidebar-search{margin:8px 0 4px;}
+.sidebar-hint{font-size:11.5px; color:var(--text-faint); padding:4px 10px 10px;}
+
+.nav-group-label{font-size:11px; text-transform:uppercase; letter-spacing:.09em; color:var(--text-faint); padding:14px 10px 6px; font-weight:600;}
+.navitem{margin-bottom:1px;}
+.navlink-row{display:flex; align-items:center; gap:2px;}
+.navlink-row .navlink{flex:1; min-width:0;}
+.navlink{display:flex; gap:8px; align-items:baseline; padding:6px 10px; border-radius:8px; color:var(--text-muted); text-decoration:none; font-size:14px; transition:background .12s ease, color .12s ease;}
+.navlink .num{font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--text-faint); flex:none; width:1.7em;}
+.navlink:hover{background:var(--surface-2); color:var(--text);}
+.navlink.active{background:var(--accent-soft); color:var(--accent-strong); font-weight:600;}
+.navlink.active .num{color:var(--accent-strong);}
+.navtoggle{
+  width:21px; height:21px; flex:none; border-radius:6px;
+  border:1px solid var(--border); background:var(--surface); color:var(--text-faint);
+  font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  transition:background .12s ease, color .12s ease, border-color .12s ease;
+}
+.navtoggle:hover{background:var(--surface-2); color:var(--text);}
+.navtoggle.expanded{background:var(--accent-soft); color:var(--accent-strong); border-color:var(--accent-soft);}
+.subnav{list-style:none; margin:1px 0 4px; padding:0; border-left:1px solid var(--border); margin-left:25px; overflow:hidden; max-height:0; transition:max-height .18s ease;}
+.subnav.expanded{max-height:900px;}
+.sublink{display:block; padding:4px 10px; border-radius:7px; color:var(--text-faint); text-decoration:none; font-size:12.5px; transition:background .12s ease, color .12s ease;}
+.sublink:hover{background:var(--surface-2); color:var(--text-muted);}
+.sublink.active{color:var(--accent-strong); font-weight:600; background:var(--accent-soft);}
+
+.main{flex:1; min-width:0;}
+.topbar{position:sticky; top:0; z-index:20; display:none; align-items:center; justify-content:space-between; padding:12px 18px; background:var(--surface); border-bottom:1px solid var(--border);}
+.content{max-width:760px; margin:0 auto; padding:64px 40px 120px;}
+@media (max-width: 980px){
+  .sidebar{position:fixed; left:0; top:0; z-index:40; transform:translateX(-104%); transition:transform .22s ease; box-shadow:var(--shadow);}
+  .sidebar.open{transform:translateX(0);}
+  .topbar{display:flex;}
+  .content{padding:36px 20px 100px;}
+  .scrim{display:none; position:fixed; inset:0; background:rgba(10,12,20,.4); z-index:30;}
+  .scrim.show{display:block;}
+}
+.burger{width:36px;height:36px;border-radius:8px;border:1px solid var(--border); background:var(--surface); color:var(--text); display:flex;align-items:center;justify-content:center; cursor:pointer;}
+
+.hero{padding-bottom:20px; margin-bottom:36px; border-bottom:1px solid var(--border);}
+.hero .kicker{display:inline-flex; align-items:center; gap:7px; font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent-2); background:var(--accent-2-soft); padding:5px 11px; border-radius:100px; font-weight:600; margin-bottom:16px;}
+.hero h1{font-size:40px; line-height:1.12; margin-bottom:14px;}
+.hero p.lede{font-size:18px; color:var(--text-muted); max-width:58ch; margin:0 0 22px;}
+.hero-meta{display:flex; gap:22px; flex-wrap:wrap; font-size:13.5px; color:var(--text-faint);}
+.hero-meta b{color:var(--text-muted); font-weight:600;}
+.hero-parts{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:22px;}
+.hero-part{border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:var(--surface);}
+.hero-part b{display:block; font-size:13px; color:var(--text);}
+.hero-part span{font-size:12px; color:var(--text-faint);}
+
+.module{padding-top:26px; margin-top:26px; border-top:1px solid var(--border); scroll-margin-top:26px;}
+.module:first-of-type{border-top:none;}
+.module-eyebrow{font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--accent); letter-spacing:.04em; margin-bottom:6px; font-weight:600;}
+.module h2{font-size:26px; margin-bottom:10px;}
+.module .dek{color:var(--text-muted); font-size:15.5px; max-width:62ch; margin-bottom:14px;}
+.module h3{font-size:18.5px; margin-top:28px;}
+.module h4{margin-top:20px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; font-size:12.5px;}
+p{margin:0 0 15px;}
+ul,ol{margin:0 0 15px; padding-left:22px;}
+li{margin-bottom:6px;}
+strong{color:var(--text); font-weight:600;}
+.relates{font-size:13px; color:var(--text-faint); margin:0 0 20px; padding:8px 12px; border-left:2px solid var(--accent-soft);}
+.relates a{color:var(--text-muted); font-weight:600;}
+
+.callout{border-radius:10px; padding:14px 16px; margin:18px 0; border:1px solid var(--border); background:var(--surface-2); font-size:14.5px;}
+.callout-title{font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:5px; display:flex; gap:7px; align-items:center;}
+.callout.tip{border-color:color-mix(in srgb, var(--accent-2) 30%, var(--border)); background:var(--accent-2-soft);}
+.callout.tip .callout-title{color:var(--accent-2);}
+.callout.warn{border-color:color-mix(in srgb, var(--danger) 30%, var(--border)); background:var(--danger-soft);}
+.callout.warn .callout-title{color:var(--danger);}
+.callout.note .callout-title{color:var(--accent-strong);}
+.callout p:last-child{margin-bottom:0;}
+
+.code-block{border-radius:11px; overflow:hidden; margin:16px 0 22px; border:1px solid var(--code-border); box-shadow:var(--shadow);}
+.code-head{display:flex; align-items:center; justify-content:space-between; background:#191B26; padding:8px 12px; border-bottom:1px solid var(--code-border);}
+.code-head-left{display:flex; align-items:center; gap:9px;}
+.code-dots{display:flex; gap:5px;}
+.code-dots span{width:8px;height:8px;border-radius:50%; background:#3A3F52;}
+.code-lang{font-family:'JetBrains Mono',monospace; font-size:11px; color:#8B92AC; text-transform:uppercase; letter-spacing:.06em;}
+.code-title{font-family:'JetBrains Mono',monospace; font-size:12px; color:#C4C9DC;}
+.copy-btn{font-family:'Source Sans 3',sans-serif; font-size:12.5px; font-weight:600; color:#C4C9DC; background:#232636; border:1px solid #333750; padding:5px 11px; border-radius:7px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background .12s ease, color .12s ease;}
+.copy-btn:hover{background:#2C3049; color:#fff;}
+.copy-btn.copied{background:var(--accent-2); color:#082C26; border-color:var(--accent-2);}
+.code-block pre{margin:0; padding:16px 18px; overflow-x:auto; background:var(--code-bg);}
+.code-block code{font-size:13.2px; line-height:1.7; color:var(--code-text); white-space:pre;}
+.tok-kw{color:#8FA6FF; font-weight:600;}
+.tok-str{color:#7FD9A6;}
+.tok-com{color:#6B7185; font-style:italic;}
+.tok-num{color:#E3A75E;}
+.tok-fn{color:#6FC3E0;}
+.tok-op{color:#E27FA0;}
+
+.tbl-wrap{overflow-x:auto; margin:18px 0 24px; border:1px solid var(--border); border-radius:10px;}
+table{border-collapse:collapse; width:100%; font-size:13.8px; min-width:520px;}
+th{text-align:left; background:var(--surface-2); color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:.05em; font-weight:700; padding:10px 14px; border-bottom:1px solid var(--border);}
+td{padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+td code, th code{font-size:12.4px; background:var(--surface-2); padding:1px 5px; border-radius:5px;}
+p code, li code{font-size:.88em; background:var(--surface-2); padding:1px 6px; border-radius:5px; color:var(--accent-strong); font-weight:500;}
+
+.catalog{display:grid; grid-template-columns:1fr; gap:14px; margin:20px 0;}
+.wcard{border:1px solid var(--border); border-radius:12px; background:var(--surface); padding:16px 18px; box-shadow:var(--shadow);}
+.wcard-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px;}
+.wcard-name{font-family:'JetBrains Mono',monospace; font-weight:600; font-size:14.5px; color:var(--accent-strong);}
+.wcard-cat{font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; border:1px solid var(--border); padding:2px 8px; border-radius:100px;}
+.wcard-desc{color:var(--text-muted); font-size:14px; margin-bottom:10px;}
+
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:700px){.grid-2{grid-template-columns:1fr;}}
+
+.diagram{border:1px solid var(--border); border-radius:12px; background:var(--surface); padding:22px; margin:20px 0; box-shadow:var(--shadow);}
+.diagram svg{width:100%; height:auto; display:block;}
+.diagram-cap{font-size:12.5px; color:var(--text-faint); margin-top:10px; text-align:center;}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 22px;}
+.pill{font-size:12.5px; font-family:'JetBrains Mono',monospace; background:var(--surface-2); border:1px solid var(--border); color:var(--text-muted); padding:5px 11px; border-radius:100px;}
+
+.moduleend{display:flex; justify-content:space-between; align-items:center; margin-top:36px; padding-top:18px; border-top:1px dashed var(--border); font-size:13px; color:var(--text-faint);}
+.progress-wrap{position:sticky; top:0; height:3px; background:var(--surface-2); z-index:25;}
+.progress-bar{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent-2));}
+
+.parttitle{font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--accent-2); letter-spacing:.08em; text-transform:uppercase; margin:44px 0 -4px; font-weight:700;}
+
+footer.colophon{max-width:760px; margin:0 auto; padding:0 40px 80px; color:var(--text-faint); font-size:13px;}
+@media (max-width:980px){footer.colophon{padding:0 20px 60px;}}
+</style>
+
+<div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+<div class="shell">
+  <div class="scrim" id="scrim"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">✨</div>
+      <div class="brand-text">
+        <div class="t1">Shiny Masterclass</div>
+        <div class="t2">45 modules · R Shiny in depth</div>
+      </div>
+    </div>
+    <div id="navTree"></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="burger" id="burgerBtn" aria-label="Open navigation">☰</button>
+      <div class="brand-text"><div class="t1" style="font-size:14px;">Shiny Masterclass</div></div>
+      <span style="width:36px;"></span>
+    </div>
+
+    <div class="content">
+
+      <div class="hero">
+        <span class="kicker">● Self-paced · 45 modules</span>
+        <h1>The Shiny Masterclass</h1>
+        <p class="lede">A ground-up, exhaustive reference for building interactive web applications in R — every layout, every widget, every corner of the reactive model, explained with runnable examples and copyable code.</p>
+        <div class="hero-meta">
+          <span><b>Language</b> R (≥ 4.1)</span>
+          <span><b>Core package</b> shiny</span>
+          <span><b>Format</b> Read, copy, run</span>
+          <span><b>Audience</b> Beginner → advanced</span>
+        </div>
+        <div class="hero-parts">
+          <div class="hero-part"><b>Part I</b><span>Foundations — Modules 00–08</span></div>
+          <div class="hero-part"><b>Part II</b><span>Building UI — Modules 09–21</span></div>
+          <div class="hero-part"><b>Part III</b><span>Reactivity &amp; Server — Modules 22–31</span></div>
+          <div class="hero-part"><b>Part IV</b><span>Architecture &amp; Style — Modules 32–35</span></div>
+          <div class="hero-part"><b>Part V</b><span>Data &amp; Widgets — Modules 36–38</span></div>
+          <div class="hero-part"><b>Part VI</b><span>Production — Modules 39–42</span></div>
+          <div class="hero-part"><b>Part VII</b><span>Practice — Modules 43–44</span></div>
+        </div>
+      </div>
+
+      <!-- ============================================================ PART I ============================================================ -->
+      <div class="parttitle">Part I — Foundations</div>
+
+      <section class="module" id="m00" data-group="Part I — Foundations">
+        <div class="module-eyebrow">Module 00</div>
+        <h2>Welcome — how to use this guide</h2>
+        <p class="dek">A linear curriculum of 45 modules. Each builds on the last, but every module is self-contained enough to jump to directly from the sidebar.</p>
+        <p>Every code sample in this guide is a complete, runnable R snippet — never pseudocode. Click <strong>Copy</strong> on any block, paste it into <code>app.R</code>, and run it:</p>
+        <div class="code-block" data-title="console" data-lang="r"><pre><code>shiny::runApp("app.R")</code></pre></div>
+        <div class="callout tip">
+          <div class="callout-title">💡 How the parts fit together</div>
+          <p><strong>Part I</strong> covers concepts you need once. <strong>Part II</strong> is a UI-building toolbox you'll revisit constantly. <strong>Part III</strong> is the conceptual core — reactivity — worth reading slowly and re-reading. <strong>Parts IV–VI</strong> are how small apps become maintainable, styled, and deployable products. <strong>Part VII</strong> ties everything together in one worked application.</p>
+        </div>
+        <p>Throughout the guide, boxes like <span class="pill" style="border-radius:6px;">Builds on →</span> point back to the module that introduced a concept being reused, so you can trace how ideas connect instead of treating each module as an island.</p>
+      </section>
+
+      <section class="module" id="m01" data-group="Part I — Foundations">
+        <div class="module-eyebrow">Module 01</div>
+        <h2>What is R Shiny?</h2>
+        <p class="dek">Shiny is an R package, created by Posit (formerly RStudio), that turns R analysis code into interactive web applications without requiring HTML, CSS, or JavaScript.</p>
+
+        <p>Turning an R script into something a non-programmer can click around in a browser normally means learning an entire front-end stack: HTML for structure, CSS for style, JavaScript for interactivity, plus a server language to run statistics. Shiny collapses all of that into one language. You describe <em>what</em> the app should show and <em>how</em> it should react to input, entirely in R, and Shiny generates and manages the web layer underneath.</p>
+
+        <h3 id="m01-mental-model">The mental model: two halves, one conversation</h3>
+        <p>Every Shiny app is built from exactly two pieces that talk to each other continuously while the app is running:</p>
+        <ul>
+          <li><strong>UI (user interface)</strong> — a description of what the browser should display: buttons, sliders, plots, tables, text. Written declaratively, as nested R function calls that generate HTML.</li>
+          <li><strong>Server</strong> — a function containing your actual logic: reading input values, computing results, producing output. It runs on the R process, not in the browser.</li>
+        </ul>
+
+        <div class="diagram">
+          <svg viewBox="0 0 680 210" role="img" aria-label="Diagram of a browser client communicating with an R process over a persistent websocket connection">
+            <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"></path></marker></defs>
+            <rect x="20" y="40" width="200" height="130" rx="12" fill="var(--surface-2)" stroke="var(--border)"></rect>
+            <text x="120" y="66" text-anchor="middle" font-family="Fraunces, serif" font-size="14" font-weight="600" fill="var(--text)">Browser</text>
+            <text x="120" y="90" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--text-muted)">renders UI (HTML/JS)</text>
+            <text x="120" y="108" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--text-muted)">captures input events</text>
+            <text x="120" y="126" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--text-muted)">no R code runs here</text>
+            <rect x="460" y="40" width="200" height="130" rx="12" fill="var(--accent-soft)" stroke="var(--accent)"></rect>
+            <text x="560" y="66" text-anchor="middle" font-family="Fraunces, serif" font-size="14" font-weight="600" fill="var(--text)">R Process</text>
+            <text x="560" y="90" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--text-muted)">runs server()</text>
+            <text x="560" y="108" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--text-muted)">evaluates reactive graph</text>
+            <text x="560" y="126" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--text-muted)">runs your R/stats code</text>
+            <line x1="222" y1="86" x2="456" y2="86" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#arrow)"></line>
+            <text x="339" y="76" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="var(--accent-2)">input$slider changes</text>
+            <line x1="456" y1="126" x2="222" y2="126" stroke="var(--accent-2)" stroke-width="1.6" marker-end="url(#arrow)"></line>
+            <text x="339" y="146" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="var(--accent-2)">updated plot/table HTML</text>
+            <text x="339" y="196" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="var(--text-faint)">persistent WebSocket connection — no page reloads</text>
+          </svg>
+          <div class="diagram-cap">Fig. 1 — the browser only displays; every computation happens back on the R process.</div>
+        </div>
+
+        <p>When a user drags a slider or clicks a button, the browser sends that value to the R process over a persistent WebSocket connection. R re-runs only the pieces of your server logic that depend on that value, and pushes back just the HTML/JSON needed to update the screen. The page never reloads. This "recompute only what changed" behavior is called <strong>reactivity</strong> — the idea the entire framework is built around, and the subject of all of Part III.</p>
+
+        <div class="grid-2">
+          <div class="callout note"><div class="callout-title">Why teams reach for Shiny</div><p>You already have the analysis in R — a model, a ggplot, a data pipeline. Shiny exposes it as a live tool without rewriting logic in another language.</p></div>
+          <div class="callout note"><div class="callout-title">What Shiny is not</div><p>Not a static site generator (that's R Markdown/Quarto), and not stateless like a typical REST API — each session keeps a live R process running for as long as the tab is open.</p></div>
+        </div>
+
+        <h3 id="m01-ecosystem">Where Shiny sits in the R ecosystem</h3>
+        <p>Shiny is one project inside a wider Posit-maintained web stack. Knowing the map helps you find the right tool later:</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Package</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td><code>shiny</code></td><td>The reactive web framework itself — this guide's subject.</td></tr>
+              <tr><td><code>bslib</code></td><td>Modern Bootstrap 5 theming and layout primitives for Shiny (Module 35).</td></tr>
+              <tr><td><code>htmlwidgets</code></td><td>The standard that lets JS visualization libraries (plotly, leaflet, DT) plug into Shiny (Module 37).</td></tr>
+              <tr><td><code>shinytest2</code></td><td>Automated testing for Shiny apps (Module 41).</td></tr>
+              <tr><td><code>rsconnect</code></td><td>Deploys apps to shinyapps.io or Posit Connect (Module 42).</td></tr>
+              <tr><td><code>golem</code>, <code>rhino</code></td><td>Opinionated frameworks for building Shiny apps as installable R packages — worth exploring once you've outgrown a single <code>app.R</code>.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="module" id="m02" data-group="Part I — Foundations">
+        <div class="module-eyebrow">Module 02</div>
+        <h2>How Shiny works under the hood</h2>
+        <p class="dek">Understanding the request lifecycle demystifies almost every confusing error message you'll hit later.</p>
+
+        <h3 id="m02-lifecycle">The lifecycle of a session</h3>
+        <ol>
+          <li><strong>Initial HTTP request.</strong> The browser requests the app's URL. <code>httpuv</code> (Shiny's embedded web server) serves back the initial HTML generated from your <code>ui</code> object.</li>
+          <li><strong>WebSocket handshake.</strong> The page's JavaScript (shipped by Shiny automatically) opens a persistent WebSocket connection back to the R process.</li>
+          <li><strong>Server function invocation.</strong> R calls your <code>server(input, output, session)</code> function <em>once</em> for this connection, creating a new, isolated reactive environment.</li>
+          <li><strong>Reactive flush cycle.</strong> Whenever an input changes, the new value is pushed over the WebSocket. Shiny walks its internal dependency graph, recomputes only the reactive expressions and outputs that depend on that input, and streams the resulting HTML/JSON patches back.</li>
+          <li><strong>Session end.</strong> When the tab closes or the connection drops, Shiny tears down that session's reactive environment and frees its memory.</li>
+        </ol>
+
+        <div class="callout note">
+          <div class="callout-title">One R process, many sessions (or one each)</div>
+          <p>By default, a single Shiny process can serve many simultaneous browser sessions — each gets its own isolated call to <code>server()</code>, so one user's <code>input$</code> values never leak into another's. Production deployments (Module 42) often run several R processes behind a load balancer for concurrency and fault isolation.</p>
+        </div>
+
+        <h3 id="m02-flush">The reactive flush cycle, conceptually</h3>
+        <p>Shiny doesn't recompute your whole app on every change. Internally, it maintains a dependency graph — a record of which reactive expressions read which reactive values. When a value becomes "dirty" (changed), Shiny marks everything downstream of it as <em>invalidated</em>, then re-runs only the invalidated pieces, in dependency order, once per flush. This is why Module 22 (The Reactive Graph) matters so much: it's not an abstraction bolted on top of Shiny, it's the actual execution engine.</p>
+
+        <div class="callout tip">
+          <div class="callout-title">💡 Why no page ever "reloads"</div>
+          <p>Because updates travel as small JSON patches over an already-open WebSocket, a Shiny app can update a single plot 10 times a second without the browser ever navigating — this is what makes drag-a-slider-and-watch-it-update feel instant.</p>
+        </div>
+
+        <h3 id="m02-tracing">Watching the flush cycle happen, live</h3>
+        <p>You can make the lifecycle above concrete by printing messages from both zones of the server function and watching the R console while you interact with a running app:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+  message("1. Session started")   # prints once, at connection time
+
+  output$echo &lt;- renderText({
+    message("2. Flush: recomputing output$echo")   # prints on every input$x change
+    input$x
+  })
+}</code></pre></div>
+        <p>Run this, open the app, and change the input a few times — <code>"1. Session started"</code> prints exactly once per browser tab, while <code>"2. Flush: recomputing..."</code> prints once per change, always immediately after the corresponding WebSocket message arrives. For a full graphical version of this trace, see <code>reactlog</code> in <a href="#m38">Module 38</a>.</p>
+      </section>
+
+      <section class="module" id="m03" data-group="Part I — Foundations">
+        <div class="module-eyebrow">Module 03</div>
+        <h2>Installing Shiny &amp; understanding its dependencies</h2>
+        <p class="dek">One install command, but it pulls in a small stack of packages that each do one job. Knowing what they are makes error messages far less mysterious.</p>
+
+        <div class="code-block" data-title="console" data-lang="r"><pre><code>install.packages("shiny")
+library(shiny)</code></pre></div>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Package</th><th>Role in the stack</th></tr></thead>
+            <tbody>
+              <tr><td><code>httpuv</code></td><td>The embedded web server. Handles HTTP requests and the WebSocket connection that carries reactive updates.</td></tr>
+              <tr><td><code>htmltools</code></td><td>Generates and manipulates HTML from R — what functions like <code>div()</code> and <code>tags$p()</code> are built on.</td></tr>
+              <tr><td><code>jsonlite</code></td><td>Serializes R objects to JSON (and back) to pass data between browser and R.</td></tr>
+              <tr><td><code>R6</code></td><td>The class system used internally for reactive objects and sessions.</td></tr>
+              <tr><td><code>later</code> &amp; <code>promises</code></td><td>Power asynchronous execution — letting long-running tasks run without freezing the whole app (Module 39).</td></tr>
+              <tr><td><code>fastmap</code></td><td>A fast key-value store used by the reactive engine's caching layer.</td></tr>
+              <tr><td><code>rlang</code>, <code>lifecycle</code>, <code>cli</code>, <code>glue</code></td><td>Tidyverse-style tooling for non-standard evaluation, deprecation warnings, and readable console messages.</td></tr>
+              <tr><td><code>sourcetools</code>, <code>xtable</code>, <code>digest</code>, <code>mime</code></td><td>Utilities: parsing source files, building HTML tables, hashing for caching, and MIME-type detection for uploads/downloads.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout tip">
+          <div class="callout-title">💡 Recommended companion packages</div>
+          <p>Not required, but used throughout this guide: <code>bslib</code> (theming), <code>DT</code> (interactive tables), <code>shinyWidgets</code> (extra inputs), <code>plotly</code> (interactive charts), and <code>rsconnect</code> (deployment).</p>
+        </div>
+        <div class="code-block" data-title="console" data-lang="r"><pre><code>install.packages(c("bslib", "DT", "shinyWidgets", "plotly", "rsconnect"))</code></pre></div>
+
+        <h3 id="m03-checking">Checking versions &amp; diagnosing install issues</h3>
+        <div class="code-block" data-title="console" data-lang="r"><pre><code># Confirm shiny is installed and see its version
+packageVersion("shiny")
+
+# List every package shiny depends on
+tools::package_dependencies("shiny", which = "all")$shiny
+
+# A common source of confusing errors: a stale binary alongside a newer
+# source package. Reinstalling from source clears most of these.
+install.packages("shiny", type = "source")</code></pre></div>
+
+        <h3 id="m03-renv">Reproducible dependencies with renv</h3>
+        <p>In a regulated or team setting — exactly the kind of environment TFL/analysis apps run in — you rarely want "whatever version of shiny happens to be installed." <code>renv</code> pins every package (including shiny and its transitive dependencies) to an exact version per project, recorded in a lockfile you can commit alongside <code>app.R</code>:</p>
+        <div class="code-block" data-title="console" data-lang="r"><pre><code>install.packages("renv")
+renv::init()               # creates renv.lock, capturing current package versions
+renv::snapshot()           # updates the lockfile after adding/upgrading packages
+renv::restore()            # on another machine: installs exactly what the lockfile says</code></pre></div>
+        <div class="callout note"><div class="callout-title">Why this matters for deployment</div><p>Posit Connect and shinyapps.io both read <code>renv.lock</code> automatically when present, guaranteeing the deployed app uses the exact package versions it was tested with — see <a href="#m41">Module 41</a>.</p></div>
+      </section>
+
+      <section class="module" id="m04" data-group="Part I — Foundations">
+        <div class="module-eyebrow">Module 04</div>
+        <h2>Development setup &amp; tooling</h2>
+        <p class="dek">Shiny apps can be written in any text editor, but a few tools make the feedback loop much faster.</p>
+
+        <h3 id="m04-rstudio">RStudio's Shiny integration</h3>
+        <p>When RStudio detects an <code>app.R</code> (or a folder with <code>ui.R</code>/<code>server.R</code>), it shows a <strong>Run App</strong> button in the source pane toolbar. Behind the scenes this just calls <code>runApp()</code> — nothing RStudio does is unavailable from the console.</p>
+        <div class="code-block" data-title="console" data-lang="r"><pre><code># Everything the "Run App" button does, spelled out
+shiny::runApp(
+  appDir = ".",
+  launch.browser = TRUE,   # open in system browser instead of the Viewer pane
+  display.mode = "normal"  # or "showcase" to display code alongside the app
+)</code></pre></div>
+
+        <h3 id="m04-autoreload">Auto-reload while developing</h3>
+        <p>By default, saving <code>app.R</code> while the app is running does <em>not</em> restart it automatically in a plain R console — you stop and re-run. RStudio's Viewer, and packages like <code>shiny</code>'s own dev mode, can watch the file and reload for you:</p>
+        <div class="code-block" data-title="console" data-lang="r"><pre><code># Enable automatic reload on file save for the current session
+options(shiny.autoreload = TRUE)
+shiny::runApp("app.R")</code></pre></div>
+
+        <h3 id="m04-project">Recommended project layout</h3>
+        <div class="code-block" data-title="folder structure" data-lang="r"><pre><code>my_app/
+├── app.R              # ui + server + shinyApp()
+├── R/                 # helper functions, sourced automatically by shiny (>= 1.5)
+│   ├── data_helpers.R
+│   └── plot_helpers.R
+├── modules/           # Shiny modules (Module 32)
+│   └── histogram_module.R
+├── www/               # static assets: CSS, images, JS — auto-served
+│   └── styles.css
+└── data/              # local datasets read at startup</code></pre></div>
+        <div class="callout note"><div class="callout-title">Auto-sourcing the R/ folder</div><p>Since Shiny 1.5, any <code>.R</code> file inside a top-level <code>R/</code> folder next to <code>app.R</code> is sourced automatically before the app starts — no manual <code>source()</code> calls needed.</p></div>
+
+        <h3 id="m04-diagnostics">Turning on Shiny's own diagnostic output</h3>
+        <p>Two options, set once at the top of a session, make Shiny far more talkative about what it's doing internally — invaluable the first few times a reactive block doesn't fire when you expect:</p>
+        <div class="code-block" data-title="console" data-lang="r"><pre><code>options(shiny.trace = TRUE)     # prints every WebSocket message sent/received
+options(shiny.reactlog = TRUE)  # records everything reactlog needs (Module 38)
+shiny::runApp("app.R")</code></pre></div>
+        <div class="callout warn"><div class="callout-title">⚠ Turn these off again</div><p>Both options are extremely verbose and meant for local debugging only — never leave them enabled in a deployed app.</p></div>
+      </section>
+
+      <section class="module" id="m05" data-group="Part I — Foundations">
+        <div class="module-eyebrow">Module 05</div>
+        <h2>Anatomy of a Shiny app</h2>
+        <p class="dek">Three ingredients, always in the same order: a UI, a server function, and the call that wires them together.</p>
+
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+
+# 1. UI — describes what the browser shows
+ui &lt;- fluidPage(
+  titlePanel("Hello, Shiny"),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("bins", "Number of bins:", min = 5, max = 50, value = 20)
+    ),
+    mainPanel(
+      plotOutput("histPlot")
+    )
+  )
+)
+
+# 2. Server — describes how the app reacts to input
+server &lt;- function(input, output, session) {
+  output$histPlot &lt;- renderPlot({
+    hist(faithful$waiting,
+         breaks = input$bins,
+         col = "steelblue", border = "white",
+         main = "Old Faithful eruption waiting times")
+  })
+}
+
+# 3. Run — wire UI and server together and launch
+shinyApp(ui = ui, server = server)</code></pre></div>
+
+        <p>Walk through what's happening line by line:</p>
+        <ul>
+          <li><code>fluidPage(...)</code> builds a responsive HTML page. Anything nested inside it becomes part of the page layout (Module 09).</li>
+          <li><code>sliderInput("bins", ...)</code> creates a control with ID <code>"bins"</code>. Inside the server, its current value is always available as <code>input$bins</code>.</li>
+          <li><code>plotOutput("histPlot")</code> reserves a spot in the UI with ID <code>"histPlot"</code> where a plot will be drawn.</li>
+          <li><code>server &lt;- function(input, output, session)</code> is called once per browser session. <code>input</code> is read-only, <code>output</code> is write-only, and <code>session</code> gives access to lower-level session info (Module 28).</li>
+          <li><code>output$histPlot &lt;- renderPlot({ ... })</code> assigns a reactive recipe — "whenever this block's dependencies change, re-run it and redraw." You never call this yourself.</li>
+          <li><code>shinyApp(ui, server)</code> creates the app object and, when run, starts the local web server.</li>
+        </ul>
+
+        <div class="callout warn">
+          <div class="callout-title">⚠ The ID contract</div>
+          <p>Every input/output pair is connected purely by matching strings: the ID given to <code>sliderInput("bins", ...)</code> must exactly match <code>input$bins</code>. There's no compiler to catch a typo — a mismatched ID silently renders nothing.</p>
+        </div>
+
+        <h3 id="m05-second-example">A second example: a text transformer</h3>
+        <p>A smaller app makes the same three-piece pattern easier to see without the plotting code competing for attention:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+
+ui &lt;- fluidPage(
+  textInput("phrase", "Enter a phrase"),
+  radioButtons("mode", "Transform", choices = c("UPPERCASE", "lowercase", "Title Case")),
+  h3(textOutput("result"))
+)
+
+server &lt;- function(input, output, session) {
+  output$result &lt;- renderText({
+    switch(input$mode,
+      "UPPERCASE" = toupper(input$phrase),
+      "lowercase" = tolower(input$phrase),
+      "Title Case" = tools::toTitleCase(input$phrase)
+    )
+  })
+}
+
+shinyApp(ui, server)</code></pre></div>
+        <p>Same shape as the histogram app: one input feeding one <code>render*()</code> block. Notice there's no <code>plotOutput</code>/<code>renderPlot</code> anywhere — the UI↔server wiring pattern is identical regardless of what kind of output you're producing.</p>
+      </section>
+
+      <section class="module" id="m06" data-group="Part I — Foundations">
+        <div class="module-eyebrow">Module 06</div>
+        <h2>The UI object, explained</h2>
+        <p class="dek">The <code>ui</code> object is not "code that runs" in the usual sense — it's a static tree of HTML built once, before any user connects.</p>
+
+        <p>A subtle but important point: <code>ui &lt;- fluidPage(...)</code> executes exactly once, when the app starts (or, for the function form below, once per new session). It is <strong>not</strong> reactive. Any R code inside it — like <code>Sys.time()</code> or <code>sample()</code> — runs a single time and its result is frozen into the HTML sent to every visitor, unless you switch to a function-based UI.</p>
+
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code># A UI as a fixed OBJECT — evaluated once, ever
+ui &lt;- fluidPage(
+  p(paste("Page built at:", Sys.time()))   # frozen at app startup
+)
+
+# A UI as a FUNCTION of the request — evaluated once per new session
+ui &lt;- function(request) {
+  fluidPage(
+    p(paste("Session started at:", Sys.time()))  # fresh per visitor
+  )
+}</code></pre></div>
+
+        <div class="callout tip">
+          <div class="callout-title">💡 When you need the function form</div>
+          <p>Use <code>ui &lt;- function(request) {...}</code> whenever the UI must depend on something per-request: reading URL query parameters (<code>parseQueryString(request$QUERY_STRING)</code>), bookmarking (Module 28), or per-user theming based on cookies.</p>
+        </div>
+
+        <h3 id="m06-htmltree">The UI is just a nested HTML tree</h3>
+        <p>Every layout and input function you call (<code>fluidPage()</code>, <code>sidebarPanel()</code>, <code>sliderInput()</code>...) is, underneath, building and returning <code>htmltools</code> tag objects. You can inspect this directly:</p>
+        <div class="code-block" data-title="console" data-lang="r"><pre><code>sliderInput("bins", "Bins", 1, 100, 50)
+#&gt; &lt;div class="form-group shiny-input-container"&gt;
+#&gt;   &lt;label class="control-label" id="bins-label" for="bins"&gt;Bins&lt;/label&gt;
+#&gt;   &lt;input class="js-range-slider" id="bins" data-min="1" data-max="100" ... /&gt;
+#&gt; &lt;/div&gt;</code></pre></div>
+        <p>This is why nesting UI functions inside each other (<code>sidebarPanel(sliderInput(...))</code>) works exactly like nesting HTML tags — because that's precisely what's happening.</p>
+      </section>
+
+      <section class="module" id="m07" data-group="Part I — Foundations">
+        <div class="module-eyebrow">Module 07</div>
+        <h2>The server function, explained</h2>
+        <p class="dek">Unlike the UI, the server function's body re-executes constantly — but understanding exactly what re-runs, and when, is the single most important skill in this guide.</p>
+
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+
+  # Runs ONCE per session, when a user first connects —
+  # good for one-time per-session setup.
+  message("New session started")
+
+  # Runs EVERY TIME input$n changes — this is a reactive context.
+  output$doubled &lt;- renderText({
+    input$n * 2
+  })
+}</code></pre></div>
+
+        <p>Code written directly in the body of <code>server()</code>, outside any <code>reactive()</code>/<code>observe()</code>/<code>render*()</code> block, runs exactly once per session — when that user's connection is established. Code inside a reactive block re-runs whenever its dependencies change. Confusing these two zones is the single most common source of "why isn't my app updating" bugs for beginners.</p>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Where the code lives</th><th>How often it runs</th></tr></thead>
+            <tbody>
+              <tr><td>Top level of <code>server()</code>, outside any reactive block</td><td>Once, when the session starts</td></tr>
+              <tr><td>Inside <code>reactive({})</code></td><td>Lazily, only when read and only if stale</td></tr>
+              <tr><td>Inside <code>observe({})</code> / <code>render*({})</code></td><td>Automatically, whenever a dependency changes</td></tr>
+              <tr><td>Top level of the R script, outside <code>server()</code> entirely</td><td>Once, when the app starts (shared by <em>all</em> sessions)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="relates">Builds directly toward → <a href="#m22">Module 22 — The Reactive Graph</a>, where we explain precisely why dependency-tracking makes this table true.</p>
+
+        <h3 id="m07-timing-example">Seeing the timing difference directly</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+
+  message("Top-level: runs once, at connection time")
+  startup_constant &lt;- Sys.time()          # fixed for the whole session
+
+  output$now &lt;- renderText({
+    message("Inside renderText: runs on every input$refresh change")
+    paste("Session started:", startup_constant, "| Now:", Sys.time())
+  })
+}</code></pre></div>
+        <p>Pair this with an <code>actionButton("refresh", "Refresh")</code> in the UI and read <code>input$refresh</code> inside <code>renderText()</code> — the "Session started" timestamp never changes across clicks, while "Now" updates every time, making the two execution zones visibly different rather than just theoretically different.</p>
+      </section>
+
+      <section class="module" id="m08" data-group="Part I — Foundations">
+        <div class="module-eyebrow">Module 08</div>
+        <h2>Project structure &amp; Express syntax</h2>
+        <p class="dek">Three valid ways to arrange the same app — pick based on size and team convention.</p>
+
+        <h3 id="m08-single">Single-file: app.R</h3>
+        <p>The modern default for anything under a few hundred lines. Everything — libraries, UI, server, the <code>shinyApp()</code> call — lives in one file.</p>
+
+        <h3 id="m08-twofile">Two-file: ui.R + server.R</h3>
+        <div class="grid-2">
+          <div class="code-block" data-title="ui.R" data-lang="r"><pre><code>library(shiny)
+
+fluidPage(
+  titlePanel("Hello, Shiny"),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("bins", "Number of bins:",
+                  min = 5, max = 50, value = 20)
+    ),
+    mainPanel(
+      plotOutput("histPlot")
+    )
+  )
+)</code></pre></div>
+          <div class="code-block" data-title="server.R" data-lang="r"><pre><code>library(shiny)
+
+function(input, output, session) {
+  output$histPlot &lt;- renderPlot({
+    hist(faithful$waiting,
+         breaks = input$bins,
+         col = "steelblue",
+         border = "white")
+  })
+}</code></pre></div>
+        </div>
+        <p>Shiny detects this pair automatically — no <code>shinyApp()</code> call is needed in either file. Useful when a large team wants UI and server changes to show up as separate diffs in version control.</p>
+
+        <h3 id="m08-express">Express syntax (shiny 1.9+)</h3>
+        <p>A newer, more compact syntax for smaller apps, inspired by Shiny for Python — inputs, outputs, and layout are declared inline without a separate <code>ui</code> object:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny.express)
+
+sliderInput("bins", "Number of bins:", min = 5, max = 50, value = 20)
+
+renderPlot({
+  hist(faithful$waiting, breaks = input$bins, col = "steelblue", border = "white")
+})</code></pre></div>
+        <div class="callout note"><div class="callout-title">Which should you use?</div><p>This guide uses classic <code>ui</code>/<code>server</code> syntax throughout, since it's what you'll encounter in the vast majority of existing apps, tutorials, and Stack Overflow answers. Express syntax is worth knowing exists, but classic syntax is the shared vocabulary of the Shiny world.</p></div>
+      </section>
+
+      <!-- ============================================================ PART II ============================================================ -->
+      <div class="parttitle">Part II — Building the UI</div>
+
+      <section class="module" id="m09" data-group="Part II — Building UI">
+        <div class="module-eyebrow">Module 09</div>
+        <h2>Page-level layouts</h2>
+        <p class="dek">The outermost function in your UI decides the page's overall shell — fluid vs fixed width, with or without a navbar.</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Function</th><th>When to use it</th></tr></thead>
+            <tbody>
+              <tr><td><code>fluidPage()</code></td><td>The default choice. A responsive, fluid-width Bootstrap page that resizes with the browser.</td></tr>
+              <tr><td><code>fixedPage()</code></td><td>Same as fluidPage but with a fixed maximum width — content stops growing on very wide screens.</td></tr>
+              <tr><td><code>navbarPage()</code></td><td>A page with a top navigation bar, for apps with multiple named sections/tabs (Module 12).</td></tr>
+              <tr><td><code>dashboardPage()</code></td><td>From <code>shinydashboard</code> — a full admin-dashboard shell with header, sidebar, and body.</td></tr>
+              <tr><td><code>page_sidebar()</code>, <code>page_navbar()</code></td><td>Modern <code>bslib</code> equivalents with Bootstrap 5 styling and built-in theming (Module 35).</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  titlePanel("A minimal fluid page"),
+  p("Content resizes with the browser window.")
+)
+
+ui &lt;- fixedPage(
+  titlePanel("A fixed-width page"),
+  p("Content stops growing past ~940px wide.")
+)</code></pre></div>
+      </section>
+
+      <section class="module" id="m10" data-group="Part II — Building UI">
+        <div class="module-eyebrow">Module 10</div>
+        <h2>The 12-column grid system</h2>
+        <p class="dek">For anything more custom than a sidebar, Shiny exposes Bootstrap's 12-column grid directly.</p>
+        <p>Each <code>fluidRow()</code> is a row; each <code>column(width, ...)</code> inside it claims that many of the 12 available columns. Widths in the same row should sum to 12 or less.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  fluidRow(
+    column(4, wellPanel("Left third — width 4")),
+    column(4, wellPanel("Middle third — width 4")),
+    column(4, wellPanel("Right third — width 4"))
+  ),
+  fluidRow(
+    column(8, wellPanel("Two thirds — width 8")),
+    column(4, wellPanel("One third — width 4"))
+  ),
+  fluidRow(
+    column(6, offset = 3, wellPanel("Centered half-width column"))
+  )
+)</code></pre></div>
+        <div class="callout tip"><div class="callout-title">💡 Nesting rows inside columns</div><p>A <code>column()</code> can itself contain a <code>fluidRow()</code> — this is how you build grids-within-grids, like a dashboard card that internally splits into a chart and a legend.</p></div>
+
+        <h3 id="m10-responsive">Responsive widths across screen sizes</h3>
+        <p>Bootstrap's grid supports breakpoint-specific widths, so a column can be full-width on a phone and a third-width on a desktop:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  fluidRow(
+    column(width = 12, offset = 0,
+           class = "col-md-4",     # full-width by default, 1/3-width from "medium" screens up
+           wellPanel("Resizes based on screen width"))
+  )
+)</code></pre></div>
+        <p>Because <code>column()</code> ultimately just emits Bootstrap's <code>col-*</code> classes, any Bootstrap breakpoint class (<code>col-sm-*</code>, <code>col-md-*</code>, <code>col-lg-*</code>) can be added directly via <code>class = "..."</code> for finer control than the <code>width</code> argument alone provides.</p>
+      </section>
+
+      <section class="module" id="m11" data-group="Part II — Building UI">
+        <div class="module-eyebrow">Module 11</div>
+        <h2>Sidebar layouts</h2>
+        <p class="dek">The most common single-page arrangement: a narrow control panel beside a main content area.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  titlePanel("Sidebar layout"),
+  sidebarLayout(
+    sidebarPanel(
+      width = 3,
+      helpText("Controls go here."),
+      selectInput("metric", "Metric", choices = c("Sales", "Profit", "Units"))
+    ),
+    mainPanel(
+      width = 9,
+      plotOutput("chart")
+    )
+  )
+)
+
+# Put the sidebar on the right instead of the left
+ui &lt;- fluidPage(
+  sidebarLayout(
+    position = "right",
+    sidebarPanel(helpText("Now on the right")),
+    mainPanel(plotOutput("chart2"))
+  )
+)</code></pre></div>
+        <p>Internally, <code>sidebarLayout()</code> is just a thin, opinionated wrapper around the grid from Module 10 — the sidebar defaults to width 4 and the main panel to width 8, out of 12.</p>
+
+        <h3 id="m11-worked">Worked example: filtering a patient demographics table</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+
+demo &lt;- data.frame(
+  patient_id = sprintf("PT-%02d", 1:10),
+  age = c(45,62,38,71,29,55,48,66,33,58),
+  sex = rep(c("M","F"), 5),
+  arm = rep(c("Placebo","Active"), each = 5)
+)
+
+ui &lt;- fluidPage(
+  titlePanel("Demographics browser"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("arm", "Arm", choices = c("All", unique(demo$arm))),
+      sliderInput("ageMax", "Max age", min = 20, max = 80, value = 80)
+    ),
+    mainPanel(
+      tableOutput("demoTable")
+    )
+  )
+)
+
+server &lt;- function(input, output, session) {
+  output$demoTable &lt;- renderTable({
+    d &lt;- demo[demo$age &lt;= input$ageMax, ]
+    if (input$arm != "All") d &lt;- d[d$arm == input$arm, ]
+    d
+  })
+}
+
+shinyApp(ui, server)</code></pre></div>
+      </section>
+
+      <section class="module" id="m12" data-group="Part II — Building UI">
+        <div class="module-eyebrow">Module 12</div>
+        <h2>Tabs &amp; multi-page navigation</h2>
+        <p class="dek">Three escalating levels of navigation: tabs within a page, a navbar across the whole app, and dropdown menus within that navbar.</p>
+
+        <h3 id="m12-tabset">tabsetPanel() — tabs inside one page</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  tabsetPanel(
+    id = "tabs",                              # gives input$tabs the active tab's title
+    tabPanel("Summary", plotOutput("summaryPlot")),
+    tabPanel("Data", tableOutput("dataTable")),
+    tabPanel("About", p("This app demonstrates tabsetPanel()."))
+  )
+)</code></pre></div>
+
+        <h3 id="m12-navbar">navbarPage() — a full multi-page app</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- navbarPage(
+  title = "My Analytics App",
+  tabPanel("Overview", plotOutput("overviewPlot")),
+  tabPanel("Details",  tableOutput("detailsTable")),
+  navbarMenu("More",
+    tabPanel("Settings", p("Settings page")),
+    tabPanel("Help",     p("Help page"))
+  )
+)</code></pre></div>
+
+        <h3 id="m12-navlist">navlistPanel() — a sidebar-style tab list</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  navlistPanel(
+    "Sections",
+    tabPanel("Intro", p("Introduction content")),
+    tabPanel("Methods", p("Methods content")),
+    tabPanel("Results", p("Results content"))
+  )
+)</code></pre></div>
+
+        <div class="callout tip"><div class="callout-title">💡 Controlling tabs from the server</div><p>Giving a tab container an <code>id</code> exposes the active tab as <code>input$id</code>, and lets you switch tabs programmatically with <code>updateTabsetPanel(session, "id", selected = "Data")</code> — covered in Module 29.</p></div>
+
+        <h3 id="m12-programmatic">Worked example: a "Next" button that advances tabs</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  tabsetPanel(
+    id = "wizard",
+    tabPanel("Step 1", p("Enter demographics"), actionButton("next1", "Next")),
+    tabPanel("Step 2", p("Enter adverse events"), actionButton("next2", "Next")),
+    tabPanel("Step 3", p("Review &amp; submit"))
+  )
+)
+
+server &lt;- function(input, output, session) {
+  observeEvent(input$next1, updateTabsetPanel(session, "wizard", selected = "Step 2"))
+  observeEvent(input$next2, updateTabsetPanel(session, "wizard", selected = "Step 3"))
+}</code></pre></div>
+        <p>This is the standard pattern behind any multi-step "wizard" form — each tab's own button reads as a self-contained instruction ("go to Step 2"), with all the actual navigation state living in one <code>id</code>.</p>
+      </section>
+
+      <section class="module" id="m13" data-group="Part II — Building UI">
+        <div class="module-eyebrow">Module 13</div>
+        <h2>Panels, wells &amp; conditional UI</h2>
+        <p class="dek">Smaller layout helpers for grouping and conditionally showing content.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  wellPanel(
+    h4("Grouped controls"),
+    p("wellPanel() draws a shaded, inset box for visual grouping.")
+  ),
+  verticalLayout(
+    p("Stacked top to bottom"),
+    p("One element per line")
+  ),
+  splitLayout(
+    cellWidths = c("50%", "50%"),
+    plotOutput("left"), plotOutput("right")
+  )
+)</code></pre></div>
+
+        <h3 id="m13-conditional">conditionalPanel() — instant, client-side visibility</h3>
+        <p><code>conditionalPanel()</code> shows or hides UI based on a JavaScript expression evaluated in the browser — it reacts instantly, with no round trip to the server.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  checkboxInput("advanced", "Show advanced options", value = FALSE),
+  conditionalPanel(
+    condition = "input.advanced == true",     # note: JS syntax, not R
+    sliderInput("threshold", "Threshold", 0, 1, 0.5)
+  )
+)</code></pre></div>
+        <div class="callout warn"><div class="callout-title">⚠ The condition is JavaScript, not R</div><p>Inside <code>condition = "..."</code> you're writing a JS boolean expression against <code>input.xyz</code> (dot notation, JS truthiness) — not R's <code>input$xyz</code>. This is the one place in a typical Shiny app where you must think in JS syntax.</p></div>
+
+        <h3 id="m13-multi-condition">Conditions on multiple inputs</h3>
+        <p>JS's usual boolean operators (<code>&amp;&amp;</code>, <code>||</code>, <code>!</code>) work exactly as expected inside <code>condition</code>, letting you gate UI on more than one input at once:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  selectInput("arm", "Arm", choices = c("Placebo", "Active")),
+  checkboxInput("showSevere", "Show severe AEs only", FALSE),
+  conditionalPanel(
+    condition = "input.arm == 'Active' &amp;&amp; input.showSevere == true",
+    tags$p(style = "color:#C4432F;", "⚠ Reviewing severe AEs in the active arm")
+  )
+)</code></pre></div>
+      </section>
+
+      <section class="module" id="m14" data-group="Part II — Building UI">
+        <div class="module-eyebrow">Module 14</div>
+        <h2>Dynamic UI: insertUI, removeUI &amp; renderUI</h2>
+        <p class="dek">Three ways to change the actual structure of the page after it has loaded — not just show/hide, but add and remove elements entirely.</p>
+
+        <h3 id="m14-renderui">renderUI() — server-generated UI</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  selectInput("category", "Category", choices = c("Fruit", "Vegetable")),
+  uiOutput("itemPicker")
+)
+
+server &lt;- function(input, output, session) {
+  output$itemPicker &lt;- renderUI({
+    choices &lt;- if (input$category == "Fruit") {
+      c("Apple", "Banana", "Mango")
+    } else {
+      c("Carrot", "Spinach", "Potato")
+    }
+    selectInput("item", "Item", choices = choices)
+  })
+}</code></pre></div>
+
+        <h3 id="m14-insertremove">insertUI() &amp; removeUI() — surgical DOM edits</h3>
+        <p>Unlike <code>renderUI()</code>, which replaces an entire placeholder's contents each time it fires, <code>insertUI()</code>/<code>removeUI()</code> add or remove elements without touching anything else already on the page — useful for "Add another row" style forms.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  actionButton("addRow", "Add filter row"),
+  div(id = "filterRows")
+)
+
+server &lt;- function(input, output, session) {
+  observeEvent(input$addRow, {
+    insertUI(
+      selector = "#filterRows",
+      where = "beforeEnd",
+      ui = textInput(paste0("filter", input$addRow), "New filter")
+    )
+  })
+}</code></pre></div>
+        <p class="relates">Builds on → <a href="#m24">Module 24 — observe() &amp; observeEvent()</a> for triggering these on a button click.</p>
+
+        <h3 id="m14-removeui">Pairing insertUI() with removeUI()</h3>
+        <p><code>removeUI()</code> deletes elements matching a CSS selector — commonly used to let each inserted row remove itself:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+  observeEvent(input$addRow, {
+    id &lt;- paste0("row", input$addRow)
+    insertUI("#filterRows", "beforeEnd",
+      div(id = id,
+        textInput(paste0("filter", input$addRow), "Filter"),
+        actionButton(paste0("remove", input$addRow), "✕")
+      )
+    )
+  })
+
+  observeEvent(input$remove1, removeUI(selector = "#row1"))
+}</code></pre></div>
+        <div class="callout note"><div class="callout-title">renderUI() vs. insertUI()/removeUI(), the deciding question</div><p>If the whole block of UI is naturally a function of current input (Module 14's first example), reach for <code>renderUI()</code> — it's simpler and Shiny manages the diffing for you. If elements need to persist independently and be added/removed one at a time without disturbing siblings (a growing form), use <code>insertUI()</code>/<code>removeUI()</code>.</p></div>
+      </section>
+
+      <section class="module" id="m15" data-group="Part II — Building UI">
+        <div class="module-eyebrow">Module 15</div>
+        <h2>Input widgets I — buttons &amp; text</h2>
+        <p class="dek">Every input function follows the same shape: <code>xInput(inputId, label, ...)</code>. The <code>inputId</code> is how you read the value in the server, as <code>input$inputId</code>.</p>
+
+        <div class="catalog">
+          <div class="wcard">
+            <div class="wcard-head"><span class="wcard-name">actionButton()</span><span class="wcard-cat">Trigger</span></div>
+            <div class="wcard-desc">A clickable button. Its value is a counter that increments on each click — typically paired with <code>observeEvent()</code> (Module 24) to trigger an action rather than read as data.</div>
+            <div class="code-block" data-title="ui" data-lang="r"><pre><code>actionButton("go", "Run analysis", icon = icon("play"), class = "btn-primary")</code></pre></div>
+          </div>
+          <div class="wcard">
+            <div class="wcard-head"><span class="wcard-name">actionLink()</span><span class="wcard-cat">Trigger</span></div>
+            <div class="wcard-desc">Identical behavior to <code>actionButton()</code>, styled as an inline text link instead of a button.</div>
+            <div class="code-block" data-title="ui" data-lang="r"><pre><code>actionLink("showMore", "Show more options")</code></pre></div>
+          </div>
+          <div class="wcard">
+            <div class="wcard-head"><span class="wcard-name">textInput() / textAreaInput()</span><span class="wcard-cat">Text</span></div>
+            <div class="wcard-desc">Single-line and multi-line free text entry.</div>
+            <div class="code-block" data-title="ui" data-lang="r"><pre><code>textInput("username", "Your name", placeholder = "Jane Doe")
+textAreaInput("notes", "Notes", rows = 4, resize = "vertical")</code></pre></div>
+          </div>
+          <div class="wcard">
+            <div class="wcard-head"><span class="wcard-name">passwordInput()</span><span class="wcard-cat">Text</span></div>
+            <div class="wcard-desc">Like <code>textInput()</code>, but characters are masked. Not encrypted in transit by itself — pair with HTTPS for real credential entry.</div>
+            <div class="code-block" data-title="ui" data-lang="r"><pre><code>passwordInput("pwd", "Password")</code></pre></div>
+          </div>
+        </div>
+
+        <h3 id="m15-worked">Worked example: a button that increments a counter</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+
+ui &lt;- fluidPage(
+  actionButton("bump", "Click me"),
+  h3(textOutput("count"))
+)
+
+server &lt;- function(input, output, session) {
+  output$count &lt;- renderText({
+    paste("Clicked", input$bump, "times")   # input$bump IS the click counter
+  })
+}
+
+shinyApp(ui, server)</code></pre></div>
+        <p>Notice there's no explicit counter variable here — <code>input$bump</code> already <em>is</code> an integer that increments on every click, and reading it inside <code>renderText()</code> automatically wires up the dependency.</p>
+
+        <h3 id="m15-charcount">Worked example: a live character counter</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+
+ui &lt;- fluidPage(
+  textAreaInput("comment", "Reviewer comment", rows = 4),
+  textOutput("charCount")
+)
+
+server &lt;- function(input, output, session) {
+  output$charCount &lt;- renderText({
+    n &lt;- nchar(input$comment)
+    limit &lt;- 500
+    paste0(n, " / ", limit, " characters", if (n &gt; limit) " — over limit!" else "")
+  })
+}
+
+shinyApp(ui, server)</code></pre></div>
+        <p>Because <code>textAreaInput()</code> updates <code>input$comment</code> on every keystroke by default, this counter recalculates live as the reviewer types — no submit button needed.</p>
+      </section>
+
+      <section class="module" id="m16" data-group="Part II — Building UI">
+        <div class="module-eyebrow">Module 16</div>
+        <h2>Input widgets II — numbers, sliders &amp; dates</h2>
+        <div class="catalog">
+          <div class="wcard">
+            <div class="wcard-head"><span class="wcard-name">numericInput()</span><span class="wcard-cat">Number</span></div>
+            <div class="wcard-desc">A stepper input constrained to numbers, with optional min/max/step.</div>
+            <div class="code-block" data-title="ui" data-lang="r"><pre><code>numericInput("age", "Age", value = 30, min = 0, max = 120, step = 1)</code></pre></div>
+          </div>
+          <div class="wcard">
+            <div class="wcard-head"><span class="wcard-name">sliderInput()</span><span class="wcard-cat">Number / Range</span></div>
+            <div class="wcard-desc">Drag a handle to pick a value — or two handles for a range when <code>value</code> is a vector of length 2. Supports dates and built-in animation.</div>
+            <div class="code-block" data-title="ui" data-lang="r"><pre><code>sliderInput("range", "Price range", min = 0, max = 1000,
+            value = c(200, 800), step = 10, pre = "$")
+
+sliderInput("year", "Year", min = 2000, max = 2024,
+            value = 2012, animate = TRUE, sep = "")</code></pre></div>
+          </div>
+          <div class="wcard">
+            <div class="wcard-head"><span class="wcard-name">dateInput() / dateRangeInput()</span><span class="wcard-cat">Date</span></div>
+            <div class="wcard-desc">A calendar picker for a single date, or a start/end pair.</div>
+            <div class="code-block" data-title="ui" data-lang="r"><pre><code>dateInput("asOf", "As of date", value = Sys.Date())
+
+dateRangeInput("period", "Reporting period",
+               start = Sys.Date() - 30, end = Sys.Date())</code></pre></div>
+          </div>
+        </div>
+
+        <h3 id="m16-worked">Worked example: a range-filtered summary</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+
+ui &lt;- fluidPage(
+  sliderInput("mpgRange", "MPG range", min = 10, max = 35, value = c(15, 25)),
+  verbatimTextOutput("summary")
+)
+
+server &lt;- function(input, output, session) {
+  output$summary &lt;- renderPrint({
+    subset &lt;- mtcars[mtcars$mpg &gt;= input$mpgRange[1] &amp; mtcars$mpg &lt;= input$mpgRange[2], ]
+    cat("Cars in range:", nrow(subset), "\n")
+    summary(subset$mpg)
+  })
+}
+
+shinyApp(ui, server)</code></pre></div>
+        <p>A range <code>sliderInput()</code> returns a two-element numeric vector — <code>input$mpgRange[1]</code> is the lower handle, <code>input$mpgRange[2]</code> the upper.</p>
+
+        <h3 id="m16-daterange">Worked example: filtering by visit date range</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+
+visits &lt;- data.frame(
+  patient_id = sprintf("PT-%02d", 1:8),
+  visit_date = as.Date("2024-01-01") + c(2, 15, 30, 44, 60, 75, 90, 100)
+)
+
+ui &lt;- fluidPage(
+  dateRangeInput("period", "Visit window",
+                 start = "2024-01-01", end = "2024-04-15"),
+  tableOutput("visitsInRange")
+)
+
+server &lt;- function(input, output, session) {
+  output$visitsInRange &lt;- renderTable({
+    subset(visits, visit_date &gt;= input$period[1] &amp; visit_date &lt;= input$period[2])
+  })
+}
+
+shinyApp(ui, server)</code></pre></div>
+        <p>Like the slider range above, <code>dateRangeInput()</code> returns its two ends as <code>input$period[1]</code>/<code>input$period[2]</code> — both already <code>Date</code> objects, so they compare directly against a <code>Date</code> column with no parsing needed.</p>
+      </section>
+
+      <section class="module" id="m17" data-group="Part II — Building UI">
+        <div class="module-eyebrow">Module 17</div>
+        <h2>Input widgets III — choices</h2>
+        <div class="catalog">
+          <div class="wcard">
+            <div class="wcard-head"><span class="wcard-name">checkboxInput() / checkboxGroupInput()</span><span class="wcard-cat">Boolean / Multi-choice</span></div>
+            <div class="wcard-desc">A single on/off toggle, or a group of checkboxes returning a character vector of selected values.</div>
+            <div class="code-block" data-title="ui" data-lang="r"><pre><code>checkboxInput("normalize", "Normalize values", value = TRUE)
+
+checkboxGroupInput("regions", "Regions",
+                    choices = c("North", "South", "East", "West"),
+                    selected = c("North", "South"))</code></pre></div>
+          </div>
+          <div class="wcard">
+            <div class="wcard-head"><span class="wcard-name">radioButtons()</span><span class="wcard-cat">Single-choice</span></div>
+            <div class="wcard-desc">Mutually exclusive choices, all visible at once (unlike a dropdown).</div>
+            <div class="code-block" data-title="ui" data-lang="r"><pre><code>radioButtons("units", "Units", choices = c("Metric" = "m", "Imperial" = "ft"))</code></pre></div>
+          </div>
+          <div class="wcard">
+            <div class="wcard-head"><span class="wcard-name">selectInput() / selectizeInput()</span><span class="wcard-cat">Dropdown</span></div>
+            <div class="wcard-desc"><code>selectizeInput()</code> adds search-as-you-type and is preferred for long choice lists; set <code>multiple = TRUE</code> on either to allow multi-select.</div>
+            <div class="code-block" data-title="ui" data-lang="r"><pre><code>selectInput("state", "State", choices = state.name)
+
+selectizeInput("tags", "Tags", choices = LETTERS, multiple = TRUE)</code></pre></div>
+          </div>
+        </div>
+
+        <h3 id="m17-namedchoices">Named choice vectors: label vs. value</h3>
+        <p>A crucial, often-missed detail: when <code>choices</code> is a <em>named</em> vector, the <strong>names</strong> are shown to the user and the <strong>values</strong> are what <code>input$x</code> actually returns.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code># User sees "Small" / "Medium" / "Large"
+# input$size returns "S" / "M" / "L"
+radioButtons("size", "Size",
+             choices = c("Small" = "S", "Medium" = "M", "Large" = "L"))</code></pre></div>
+        <div class="callout tip"><div class="callout-title">💡 Why this matters</div><p>Keep user-facing labels friendly ("Small") while keeping the value your R code branches on stable and code-friendly ("S") — this decouples UI copy from application logic.</p></div>
+
+        <h3 id="m17-clinical">Clinical example: a treatment-arm filter</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>checkboxGroupInput("arm", "Treatment arm",
+                    choices = c("Placebo", "Low Dose", "High Dose"),
+                    selected = c("Placebo", "Low Dose", "High Dose"))
+
+radioButtons("severity", "Minimum AE severity to display",
+             choices = c("Mild", "Moderate", "Severe"), selected = "Mild")</code></pre></div>
+        <p>This exact pair of widgets drives the safety dashboard's filtering logic in <a href="#m37c">Module 37B — Case Study: A Clinical Trial Safety Dashboard</a>.</p>
+      </section>
+
+      <section class="module" id="m18" data-group="Part II — Building UI">
+        <div class="module-eyebrow">Module 18</div>
+        <h2>Input widgets IV — files &amp; extended widgets</h2>
+        <div class="catalog">
+          <div class="wcard">
+            <div class="wcard-head"><span class="wcard-name">fileInput()</span><span class="wcard-cat">Upload</span></div>
+            <div class="wcard-desc">Lets the user upload a file from their machine. The server sees a data frame with the uploaded file's temp path, name, size, and type.</div>
+            <div class="code-block" data-title="ui" data-lang="r"><pre><code>fileInput("upload", "Upload CSV", accept = c(".csv"))</code></pre></div>
+            <div class="code-block" data-title="server" data-lang="r"><pre><code>observeEvent(input$upload, {
+  df &lt;- read.csv(input$upload$datapath)
+})</code></pre></div>
+          </div>
+        </div>
+
+        <h3 id="m18-fileinput-detail">The fileInput() data frame, in full</h3>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Column</th><th>Contents</th></tr></thead>
+            <tbody>
+              <tr><td><code>name</code></td><td>Original filename as chosen by the user</td></tr>
+              <tr><td><code>size</code></td><td>File size in bytes</td></tr>
+              <tr><td><code>type</code></td><td>MIME type reported by the browser</td></tr>
+              <tr><td><code>datapath</code></td><td>Path to a temporary copy on the server — always read from here, never <code>name</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="m18-shinywidgets">Beyond base Shiny: the shinyWidgets package</h3>
+        <p><code>shinyWidgets</code> adds polished variants of common controls — switches, picker inputs with search, star ratings, and more — that slot into the UI exactly like built-in inputs.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shinyWidgets)
+
+ui &lt;- fluidPage(
+  switchInput("darkMode", "Dark mode", value = FALSE),
+  pickerInput("fruit", "Fruit", choices = c("Apple", "Banana", "Cherry"),
+              options = list(`live-search` = TRUE))
+)</code></pre></div>
+
+        <div class="callout warn"><div class="callout-title">⚠ Upload size limit</div><p>By default Shiny caps uploads at 5MB. Raise it with <code>options(shiny.maxRequestSize = 30*1024^2)</code> (here, 30MB) near the top of <code>app.R</code>.</p></div>
+
+        <h3 id="m18-validated-upload">Worked example: validating an uploaded spreadsheet</h3>
+        <p>Real-world uploads need checking before use — wrong file type, missing columns, or a corrupt file should produce a clear message, not a crash.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+library(readxl)
+
+ui &lt;- fluidPage(
+  fileInput("upload", "Upload subject listing (.xlsx)", accept = ".xlsx"),
+  tableOutput("preview")
+)
+
+server &lt;- function(input, output, session) {
+
+  parsed &lt;- reactive({
+    req(input$upload)
+    df &lt;- tryCatch(
+      read_excel(input$upload$datapath),
+      error = function(e) NULL
+    )
+    validate(
+      need(!is.null(df), "Couldn't read that file — is it a valid .xlsx?"),
+      need(all(c("patient_id", "arm") %in% names(df)),
+           "File must contain 'patient_id' and 'arm' columns")
+    )
+    df
+  })
+
+  output$preview &lt;- renderTable({
+    head(parsed(), 10)
+  })
+}
+
+shinyApp(ui, server)</code></pre></div>
+        <p class="relates">Builds on → <a href="#m30">Module 30 — Validation</a>: <code>tryCatch()</code> catches a hard parsing failure and turns it into <code>NULL</code>, which <code>validate()</code>/<code>need()</code> then turns into a message the uploader can act on.</p>
+      </section>
+
+      <section class="module" id="m19" data-group="Part II — Building UI">
+        <div class="module-eyebrow">Module 19</div>
+        <h2>Outputs &amp; render functions</h2>
+        <p class="dek">Outputs come in matched pairs: a placeholder function in the UI, and a <code>render*()</code> function in the server that fills it in.</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>UI placeholder</th><th>Server render function</th><th>Produces</th></tr></thead>
+            <tbody>
+              <tr><td><code>textOutput()</code></td><td><code>renderText({...})</code></td><td>Plain text, wrapped in a <code>&lt;span&gt;</code>/<code>&lt;div&gt;</code>.</td></tr>
+              <tr><td><code>verbatimTextOutput()</code></td><td><code>renderPrint({...})</code></td><td>Console-style monospace output — anything you'd normally see printed to the R console.</td></tr>
+              <tr><td><code>plotOutput()</code></td><td><code>renderPlot({...})</code></td><td>A base R, lattice, or ggplot2 plot rendered as an image (Module 20).</td></tr>
+              <tr><td><code>tableOutput()</code></td><td><code>renderTable({...})</code></td><td>A static HTML table of a whole data frame (Module 21).</td></tr>
+              <tr><td><code>DTOutput()</code></td><td><code>renderDT({...})</code></td><td>An interactive, sortable/searchable table (Module 36).</td></tr>
+              <tr><td><code>uiOutput()</code></td><td><code>renderUI({...})</code></td><td>Dynamically generated UI (Module 14).</td></tr>
+              <tr><td><code>imageOutput()</code></td><td><code>renderImage({...})</code></td><td>An external image file (PNG/JPEG) with a src path.</td></tr>
+              <tr><td><code>downloadButton()</code></td><td><code>downloadHandler()</code></td><td>Triggers a file download (Module 38).</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+
+ui &lt;- fluidPage(
+  h4("Text"), textOutput("greeting"),
+  h4("Console-style"), verbatimTextOutput("summary")
+)
+
+server &lt;- function(input, output, session) {
+  output$greeting &lt;- renderText({
+    paste("Hello! You loaded this app at", Sys.time())
+  })
+  output$summary &lt;- renderPrint({
+    summary(mtcars$mpg)
+  })
+}
+
+shinyApp(ui, server)</code></pre></div>
+        <div class="callout note"><div class="callout-title">renderText() vs. renderPrint()</div><p><code>renderText()</code> expects the block to <em>return</em> a character string (like <code>paste()</code> would). <code>renderPrint()</code> instead captures whatever gets <em>printed</em> to the console — which is why it's the right choice for objects like <code>summary()</code> results that have their own print method.</p></div>
+
+        <h3 id="m19-html">htmlOutput() for rich, formatted text</h3>
+        <p>When plain text isn't enough — you need bold, color, or multiple lines with structure — pair <code>htmlOutput()</code> with a block that builds real HTML tags:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(htmlOutput("statusBox"))
+
+server &lt;- function(input, output, session) {
+  output$statusBox &lt;- renderUI({
+    n &lt;- nrow(filtered_ae_data())
+    color &lt;- if (n &gt; 5) "#C4432F" else "#0E8C7D"
+    tags$div(
+      style = paste0("color:", color, "; font-weight:600;"),
+      sprintf("%d adverse events match the current filter", n)
+    )
+  })
+}</code></pre></div>
+        <div class="callout note"><div class="callout-title">htmlOutput() is an alias</div><p><code>htmlOutput()</code> and <code>uiOutput()</code> (Module 14) are literally the same function under two names — either works with <code>renderUI()</code>.</p></div>
+      </section>
+
+      <section class="module" id="m20" data-group="Part II — Building UI">
+        <div class="module-eyebrow">Module 20</div>
+        <h2>Rendering plots</h2>
+        <p class="dek">plotOutput()/renderPlot() work with any R plotting system that draws to the current graphics device — base R, lattice, and ggplot2 alike.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+library(ggplot2)
+
+ui &lt;- fluidPage(
+  plotOutput("basePlot", height = 250),
+  plotOutput("ggPlot", height = 250)
+)
+
+server &lt;- function(input, output, session) {
+  output$basePlot &lt;- renderPlot({
+    plot(mtcars$wt, mtcars$mpg, pch = 19, col = "steelblue",
+         xlab = "Weight", ylab = "MPG", main = "Base R plot")
+  })
+
+  output$ggPlot &lt;- renderPlot({
+    ggplot(mtcars, aes(wt, mpg, color = factor(cyl))) +
+      geom_point(size = 3) +
+      labs(title = "ggplot2 plot", color = "Cylinders") +
+      theme_minimal()
+  })
+}
+
+shinyApp(ui, server)</code></pre></div>
+
+        <h3 id="m20-sizing">Controlling size &amp; resolution</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>plotOutput("p", width = "100%", height = "400px")
+
+renderPlot({
+  plot(mtcars$wt, mtcars$mpg)
+}, res = 96)   # higher res for crisper text on high-DPI screens</code></pre></div>
+
+        <h3 id="m20-click">Making plots interactive: click, hover, brush</h3>
+        <p>Base <code>plotOutput()</code> can report mouse interactions back to the server without any extra package:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  plotOutput("scatter", click = "plot_click"),
+  verbatimTextOutput("clickInfo")
+)
+
+server &lt;- function(input, output, session) {
+  output$scatter &lt;- renderPlot({
+    plot(mtcars$wt, mtcars$mpg)
+  })
+  output$clickInfo &lt;- renderPrint({
+    nearPoints(mtcars, input$plot_click, xvar = "wt", yvar = "mpg")
+  })
+}</code></pre></div>
+        <p class="relates">For richer interactivity (tooltips, zoom, legends toggling series), see → <a href="#m36">Module 36 — plotly &amp; htmlwidgets</a>.</p>
+
+        <h3 id="m20-facets">Worked example: faceting AE severity by treatment arm</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(ggplot2)
+
+server &lt;- function(input, output, session) {
+  output$aeFacets &lt;- renderPlot({
+    ggplot(ae_data, aes(x = severity, fill = severity)) +
+      geom_bar() +
+      facet_wrap(~ arm) +
+      scale_fill_manual(values = c(Mild = "#0E8C7D", Moderate = "#E3A75E", Severe = "#C4432F")) +
+      labs(x = NULL, y = "Count") +
+      theme_minimal() +
+      theme(legend.position = "none")
+  })
+}</code></pre></div>
+        <p><code>facet_wrap(~ arm)</code> draws one small panel per treatment arm, sharing axes by default — a standard way to compare a distribution across study groups without needing several separate plots or manual filtering.</p>
+      </section>
+
+      <section class="module" id="m21" data-group="Part II — Building UI">
+        <div class="module-eyebrow">Module 21</div>
+        <h2>Rendering tables</h2>
+        <p class="dek">The built-in <code>tableOutput()</code>/<code>renderTable()</code> pair produces a simple, static HTML table — good for small, glanceable summaries.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+
+ui &lt;- fluidPage(
+  tableOutput("headRows")
+)
+
+server &lt;- function(input, output, session) {
+  output$headRows &lt;- renderTable({
+    head(mtcars, 5)
+  }, striped = TRUE, hover = TRUE, digits = 1)
+}
+
+shinyApp(ui, server)</code></pre></div>
+        <div class="callout note"><div class="callout-title">Static, not interactive</div><p><code>renderTable()</code> re-renders the entire table on every change and offers no sorting, filtering, or pagination in the browser. For anything a user will explore — hundreds of rows, needs search — reach for <code>DT</code> instead (Module 35).</p></div>
+
+        <h3 id="m21-summary-table">Worked example: a demographics summary table (Table 1-style)</h3>
+        <p>Clinical study reports almost always open with a "Table 1" — baseline characteristics summarized by treatment arm. A reactive summary version is a natural first Shiny use case for a biostatistics team:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+
+demo &lt;- data.frame(
+  arm = rep(c("Placebo", "Active"), each = 20),
+  age = c(rnorm(20, 55, 10), rnorm(20, 53, 9)),
+  sex = sample(c("M", "F"), 40, replace = TRUE)
+)
+
+ui &lt;- fluidPage(
+  tableOutput("table1")
+)
+
+server &lt;- function(input, output, session) {
+  output$table1 &lt;- renderTable({
+    aggregate(age ~ arm, data = demo, FUN = function(x) {
+      c(N = length(x), Mean = round(mean(x), 1), SD = round(sd(x), 1))
+    })
+  }, digits = 1)
+}
+
+shinyApp(ui, server)</code></pre></div>
+      </section>
+
+      <!-- ============================================================ PART III ============================================================ -->
+      <div class="parttitle">Part III — Reactivity &amp; Server Logic</div>
+
+      <section class="module" id="m22" data-group="Part III — Reactivity">
+        <div class="module-eyebrow">Module 22</div>
+        <h2>The reactive graph</h2>
+        <p class="dek">This is the idea that makes Shiny Shiny. Everything else in the framework is scaffolding around one concept: a dependency graph that knows exactly what to recompute, and when.</p>
+
+        <h3 id="m22-blocks">Three kinds of reactive building blocks</h3>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Type</th><th>Produces a value?</th><th>Runs automatically?</th><th>Typical use</th></tr></thead>
+            <tbody>
+              <tr><td><code>reactive({...})</code></td><td>Yes — call it like a function</td><td>Only when read, and only if stale</td><td>Shared, cached computation used by multiple outputs</td></tr>
+              <tr><td><code>observe({...})</code> / <code>observeEvent()</code></td><td>No — used for side effects</td><td>Yes, whenever a dependency changes</td><td>Notifications, updating inputs, writing to a database</td></tr>
+              <tr><td><code>render*({...})</code></td><td>Yes — implicitly, to an <code>output$</code></td><td>Yes, whenever a dependency changes</td><td>Producing the actual content of an output</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The rule underneath all of it: <strong>a reactive expression automatically knows what it depends on</strong>, simply by which reactive values it reads while it runs. There's no manual subscription list — Shiny tracks it every time the block executes.</p>
+
+        <div class="diagram">
+          <svg viewBox="0 0 680 220" role="img" aria-label="Reactive graph diagram showing an input flowing into a reactive expression, which flows into two outputs">
+            <defs><marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent-2)"></path></marker></defs>
+            <circle cx="70" cy="110" r="34" fill="var(--accent-soft)" stroke="var(--accent)"></circle>
+            <text x="70" y="106" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--text)">input$</text>
+            <text x="70" y="120" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--text)">bins</text>
+            <line x1="104" y1="110" x2="230" y2="110" stroke="var(--accent-2)" stroke-width="1.6" marker-end="url(#arrow2)"></line>
+            <rect x="234" y="82" width="150" height="56" rx="10" fill="var(--surface-2)" stroke="var(--border)"></rect>
+            <text x="309" y="106" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" fill="var(--text)">filteredData()</text>
+            <text x="309" y="122" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--text-faint)">reactive({...})</text>
+            <line x1="384" y1="98" x2="510" y2="60" stroke="var(--accent-2)" stroke-width="1.6" marker-end="url(#arrow2)"></line>
+            <line x1="384" y1="122" x2="510" y2="160" stroke="var(--accent-2)" stroke-width="1.6" marker-end="url(#arrow2)"></line>
+            <rect x="514" y="34" width="150" height="52" rx="10" fill="var(--accent-2-soft)" stroke="var(--accent-2)"></rect>
+            <text x="589" y="65" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--text)">output$plot</text>
+            <rect x="514" y="134" width="150" height="52" rx="10" fill="var(--accent-2-soft)" stroke="var(--accent-2)"></rect>
+            <text x="589" y="165" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--text)">output$table</text>
+            <text x="340" y="210" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" fill="var(--text-faint)">changing input$bins invalidates filteredData(), which invalidates both outputs</text>
+          </svg>
+          <div class="diagram-cap">Fig. 2 — one reactive expression shared by two outputs. It runs once per change, not once per consumer.</div>
+        </div>
+
+        <h3 id="m22-invalidation">Invalidation, not re-execution, is the first step</h3>
+        <p>When <code>input$bins</code> changes, Shiny doesn't immediately re-run anything. It first walks the graph marking every downstream node <em>invalidated</em> (stale). Only during the next <strong>flush</strong> — a single batched pass — does it actually re-execute invalidated nodes, in dependency order, each exactly once. This two-phase design is why changing five inputs in the same tick of the event loop doesn't trigger five separate redraws of a shared output — only one.</p>
+
+        <div class="callout tip"><div class="callout-title">💡 See it for yourself</div><p><code>reactlog</code> (Module 40) draws this exact graph, live, for any running app — invaluable once apps grow past a handful of outputs.</p></div>
+      </section>
+
+      <section class="module" id="m23" data-group="Part III — Reactivity">
+        <div class="module-eyebrow">Module 23</div>
+        <h2>reactive() — reactive expressions</h2>
+        <p class="dek">Use <code>reactive()</code> whenever more than one output needs the same intermediate result.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+
+  filteredData &lt;- reactive({
+    subset(mtcars, mpg &gt;= input$minMpg)
+  })
+
+  output$plot &lt;- renderPlot({
+    plot(filteredData()$wt, filteredData()$mpg)
+  })
+
+  output$table &lt;- renderTable({
+    filteredData()
+  })
+}</code></pre></div>
+        <p><code>filteredData</code> is not a data frame — it's a function. Calling <code>filteredData()</code> either returns a cached value (nothing it depends on has changed) or re-runs the block once and caches the new result. Both outputs above share that single computation, instead of each re-filtering <code>mtcars</code> independently.</p>
+
+        <h3 id="m23-laziness">Laziness: reactive() only runs when read</h3>
+        <p>A <code>reactive()</code> block that nothing ever reads never executes — even if its own dependencies change. This is different from <code>observe()</code> (Module 24), which runs proactively. Laziness is what makes <code>reactive()</code> safe to define speculatively without worrying about wasted computation.</p>
+        <div class="code-block" data-title="console" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+  expensive &lt;- reactive({
+    message("Computing...")   # only prints if expensive() is actually called somewhere
+    Sys.sleep(1)
+    input$x * 2
+  })
+  # If no output ever calls expensive(), "Computing..." never prints.
+}</code></pre></div>
+
+        <h3 id="m23-caching">Caching across users with bindCache()</h3>
+        <p>For expensive computations that produce the same result for the same inputs across different users, <code>bindCache()</code> lets Shiny skip recomputation entirely and reuse a stored result:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>filteredData &lt;- reactive({
+  expensive_join(input$region, input$year)
+}) |&gt; bindCache(input$region, input$year)</code></pre></div>
+
+        <h3 id="m23-chaining">Chaining reactives into a pipeline</h3>
+        <p>Reactive expressions can depend on other reactive expressions, not just on <code>input$</code> — this is how you build a readable, multi-stage pipeline instead of one dense block:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+
+  rawSubset &lt;- reactive({
+    subset(ae_data, arm %in% input$arm)
+  })
+
+  severityFiltered &lt;- reactive({
+    subset(rawSubset(), severity_rank &gt;= input$minSeverity)
+  })
+
+  summaryCounts &lt;- reactive({
+    aggregate(patient_id ~ ae_term, data = severityFiltered(), FUN = length)
+  })
+
+  output$table &lt;- renderTable({ summaryCounts() })
+}</code></pre></div>
+        <p>Changing <code>input$arm</code> invalidates all three stages; changing <code>input$minSeverity</code> only invalidates the last two — <code>rawSubset()</code> stays cached. Each stage is independently readable, testable, and reusable by other outputs.</p>
+      </section>
+
+      <section class="module" id="m24" data-group="Part III — Reactivity">
+        <div class="module-eyebrow">Module 24</div>
+        <h2>observe() &amp; observeEvent()</h2>
+        <p class="dek">Reactive expressions produce values. Observers produce <em>side effects</em> — and never return anything meaningful.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+
+  # Fires whenever ANY reactive value it reads changes.
+  observe({
+    message("input$x is now: ", input$x)
+  })
+
+  # Fires ONLY when input$submit changes (i.e. is clicked) —
+  # ignores changes to any other input read inside the block.
+  observeEvent(input$submit, {
+    showNotification("Form submitted!", type = "message")
+  })
+}</code></pre></div>
+
+        <h3 id="m24-when">observe() vs. observeEvent(): when to use which</h3>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th></th><th><code>observe({})</code></th><th><code>observeEvent(trigger, {})</code></th></tr></thead>
+            <tbody>
+              <tr><td>Dependencies</td><td>Everything read inside the block</td><td>Only the explicit <code>trigger</code> expression</td></tr>
+              <tr><td>Best for</td><td>Logging/syncing that should track several inputs at once</td><td>Actions gated behind one specific event, like a button</td></tr>
+              <tr><td>Risk</td><td>Easy to accidentally depend on more than intended</td><td>Low — dependencies are explicit and visible</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip"><div class="callout-title">💡 Default advice</div><p>Reach for <code>observeEvent()</code> first. It reads like a sentence — "when this happens, do that" — and its dependency is explicit, which avoids a whole class of accidental-retrigger bugs.</p></div>
+
+        <h3 id="m24-params">Useful observeEvent() parameters</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>observeEvent(input$submit, {
+  log_submission(input$form)
+},
+  ignoreInit = TRUE,   # don't fire once automatically when the app first loads
+  once = TRUE          # fire at most one time ever, then stop listening
+)
+
+# Trigger on EITHER of two inputs changing
+observeEvent(list(input$arm, input$severity), {
+  message("A filter changed")
+})</code></pre></div>
+        <p><code>ignoreInit = TRUE</code> matters more than it looks: by default, <code>observeEvent()</code>/<code>eventReactive()</code> fire once immediately at startup, even before the user has touched anything — usually harmless, but surprising the first time you see a notification pop up on page load.</p>
+      </section>
+
+      <section class="module" id="m25" data-group="Part III — Reactivity">
+        <div class="module-eyebrow">Module 25</div>
+        <h2>eventReactive() — computation gated by a trigger</h2>
+        <p class="dek">The value-producing counterpart to <code>observeEvent()</code> — like <code>reactive()</code>, but only recomputes on a specific trigger.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+
+  # Like reactive(), but only recomputes when input$go changes,
+  # not whenever input$dataset changes.
+  result &lt;- eventReactive(input$go, {
+    heavy_computation(input$dataset)
+  })
+
+  output$result &lt;- renderPrint({
+    result()
+  })
+}</code></pre></div>
+
+        <h3 id="m25-pattern">The "Submit" button pattern</h3>
+        <p>A very common UI pattern: let users adjust several inputs freely, but only recompute (and only show results) once they click a "Run" button — rather than firing on every keystroke or slider drag.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  textInput("query", "Search term"),
+  sliderInput("minScore", "Minimum score", 0, 100, 50),
+  actionButton("search", "Search", class = "btn-primary"),
+  tableOutput("results")
+)
+
+server &lt;- function(input, output, session) {
+  searchResults &lt;- eventReactive(input$search, {
+    # input$query and input$minScore are read here, but the
+    # WHOLE block only re-runs when input$search (the button) fires.
+    run_search(input$query, input$minScore)
+  })
+
+  output$results &lt;- renderTable({
+    searchResults()
+  })
+}</code></pre></div>
+
+        <h3 id="m25-clinical">Clinical example: locking a filtered listing at "Run Report"</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  checkboxGroupInput("arm", "Arm", choices = c("Placebo", "Active"), selected = c("Placebo", "Active")),
+  actionButton("runReport", "Run report", class = "btn-primary"),
+  tableOutput("frozenListing")
+)
+
+server &lt;- function(input, output, session) {
+  # Analysts can keep changing input$arm freely; the listing below only
+  # updates — and is only exported — once "Run report" is clicked.
+  reportData &lt;- eventReactive(input$runReport, {
+    subset(ae_data, arm %in% input$arm)
+  }, ignoreNULL = FALSE)
+
+  output$frozenListing &lt;- renderTable({ reportData() })
+}</code></pre></div>
+        <p><code>ignoreNULL = FALSE</code> lets the reactive produce an initial value even before the button has ever been clicked — useful when you want a sensible default listing shown immediately, with the button only needed to refresh it.</p>
+      </section>
+
+      <section class="module" id="m26" data-group="Part III — Reactivity">
+        <div class="module-eyebrow">Module 26</div>
+        <h2>isolate() — reading without depending</h2>
+        <p class="dek">Lets a reactive block read a value without creating a dependency on it.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>observeEvent(input$go, {
+  # This block only re-runs when input$go changes.
+  # input$label is read but NOT tracked, thanks to isolate().
+  message("Running with label: ", isolate(input$label))
+})</code></pre></div>
+        <p><code>eventReactive()</code> and <code>observeEvent()</code> are, in fact, implemented internally using <code>isolate()</code> under the hood — they isolate everything in the block except the explicit trigger expression. Understanding <code>isolate()</code> is what lets you build the same pattern by hand when the built-ins aren't flexible enough — for example, isolating just one of several reads inside an <code>observe()</code>.</p>
+        <div class="callout warn"><div class="callout-title">⚠ A common trap: reading input$x outside a reactive context</div><p>Reactive values (like <code>input$x</code>) can only be read inside a reactive context — a <code>reactive()</code>, <code>observe()</code>, <code>render*()</code>, or similar. Reading one directly at the top level of your server function throws <code>Operation not allowed without an active reactive context</code>. <code>isolate()</code> is one way to read a value from <em>outside</em> such a context, e.g. once at session start.</p></div>
+
+        <h3 id="m26-snapshot">Worked example: snapshotting state without tracking it</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+
+  auditLog &lt;- reactiveVal(list())
+
+  observeEvent(input$approve, {
+    # We want to RECORD input$reviewer and input$comment at the moment of
+    # approval, but neither should be able to trigger this block on its own —
+    # only input$approve should. isolate() achieves exactly that.
+    entry &lt;- list(
+      time = Sys.time(),
+      reviewer = isolate(input$reviewer),
+      comment  = isolate(input$comment)
+    )
+    auditLog(c(auditLog(), list(entry)))
+  })
+}</code></pre></div>
+        <p>Without <code>isolate()</code> here, this <code>observeEvent()</code> would still only fire on <code>input$approve</code> (that's what <code>observeEvent()</code>'s trigger argument already guarantees) — but wrapping the reads in <code>isolate()</code> makes that guarantee visible in the code itself, which matters once a block gets long enough that its real dependency isn't obvious at a glance.</p>
+      </section>
+
+      <section class="module" id="m27" data-group="Part III — Reactivity">
+        <div class="module-eyebrow">Module 27</div>
+        <h2>reactiveVal() &amp; reactiveValues() — your own state</h2>
+        <p class="dek">Not all state comes from a widget. These create reactive state your server logic owns and updates directly.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+
+  counter &lt;- reactiveVal(0)
+
+  observeEvent(input$increment, {
+    counter(counter() + 1)      # write: call it with a new value
+  })
+
+  output$count &lt;- renderText({
+    counter()                   # read: call it with no arguments
+  })
+
+  # reactiveValues() for several related pieces of state
+  state &lt;- reactiveValues(clicks = 0, last_label = "")
+
+  observeEvent(input$go, {
+    state$clicks &lt;- state$clicks + 1
+    state$last_label &lt;- input$label
+  })
+
+  output$stateInfo &lt;- renderText({
+    paste(state$clicks, "clicks, last label:", state$last_label)
+  })
+}</code></pre></div>
+
+        <h3 id="m27-vs-values">reactiveVal() vs. reactiveValues()</h3>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th></th><th><code>reactiveVal()</code></th><th><code>reactiveValues()</code></th></tr></thead>
+            <tbody>
+              <tr><td>Holds</td><td>A single value</td><td>Several named values, like a list</td></tr>
+              <tr><td>Read syntax</td><td><code>counter()</code></td><td><code>state$clicks</code></td></tr>
+              <tr><td>Write syntax</td><td><code>counter(newValue)</code></td><td><code>state$clicks &lt;- newValue</code></td></tr>
+              <tr><td>Each field tracked separately?</td><td>N/A — one value</td><td>Yes — reading <code>state$clicks</code> only depends on <code>clicks</code>, not <code>last_label</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="m27-worked">Worked example: a running to-do list</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+
+ui &lt;- fluidPage(
+  textInput("newItem", "New to-do"),
+  actionButton("add", "Add"),
+  tags$ul(uiOutput("todoList"))
+)
+
+server &lt;- function(input, output, session) {
+  todos &lt;- reactiveVal(character(0))
+
+  observeEvent(input$add, {
+    req(input$newItem)
+    todos(c(todos(), input$newItem))
+    updateTextInput(session, "newItem", value = "")
+  })
+
+  output$todoList &lt;- renderUI({
+    tagList(lapply(todos(), function(item) tags$li(item)))
+  })
+}
+
+shinyApp(ui, server)</code></pre></div>
+
+        <h3 id="m27-reset">A reset button, and why it needs isolate()</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+  history &lt;- reactiveVal(numeric(0))
+
+  observeEvent(input$record, {
+    history(c(isolate(history()), input$value))
+  })
+
+  observeEvent(input$reset, {
+    history(numeric(0))
+  })
+}</code></pre></div>
+        <p>Notice <code>isolate(history())</code> is written explicitly even though it's technically redundant here — <code>observeEvent()</code> already isolates everything in its handler except the trigger expression itself (Module 24). Writing it anyway documents intent for the reader. If you instead used a plain <code>observe({ history(c(history(), input$value)) })</code>, that explicit <code>isolate()</code> would stop being optional: without it, reading <code>history()</code> inside a block that also writes it creates a self-dependency and an infinite loop.</p>
+      </section>
+
+      <section class="module" id="m28" data-group="Part III — Reactivity">
+        <div class="module-eyebrow">Module 28</div>
+        <h2>input / output / session — deep dive</h2>
+        <p class="dek">The three arguments every server function receives, and what each one is actually for.</p>
+
+        <h3 id="m28-input">input — read-only, list-like, reactive</h3>
+        <p><code>input</code> behaves like a named list, but every field is a reactive value — reading <code>input$x</code> inside a reactive context creates a dependency. You cannot assign to it directly (<code>input$x &lt;- 5</code> throws an error) — that's what <code>update*Input()</code> functions are for (Module 29).</p>
+
+        <h3 id="m28-output">output — write-only</h3>
+        <p><code>output</code> is where you assign the results of <code>render*()</code> calls. You should never try to <em>read</em> from <code>output$x</code> — it's a one-way channel from server logic to the browser.</p>
+
+        <h3 id="m28-session">session — the escape hatch</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+
+  # Run cleanup code when a session ends (tab closed, connection dropped)
+  session$onSessionEnded(function() {
+    message("A user's session just ended.")
+  })
+
+  # Read the URL query string, e.g. ?user=42
+  observe({
+    query &lt;- parseQueryString(session$clientData$url_search)
+    print(query$user)
+  })
+
+  # Client-side info: browser window size, pixel ratio, URL, etc.
+  output$dims &lt;- renderText({
+    paste(session$clientData$output_plot_width, "×", session$clientData$output_plot_height)
+  })
+}</code></pre></div>
+        <p><code>session</code> also underlies every <code>update*Input()</code> call, bookmarking state (<code>enableBookmarking()</code>), and sending custom messages to hand-written JavaScript with <code>session$sendCustomMessage()</code>.</p>
+
+        <h3 id="m28-bookmark">Worked example: bookmarkable state</h3>
+        <p>Bookmarking encodes the current input values into the URL, so a reviewer can share a link that reopens the app already filtered the same way they had it:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+
+ui &lt;- function(request) {
+  fluidPage(
+    selectInput("arm", "Arm", choices = c("Placebo", "Active")),
+    bookmarkButton()          # generates a shareable, state-encoding URL
+  )
+}
+
+server &lt;- function(input, output, session) {
+  # nothing extra needed — enableBookmarking() below wires input$arm
+  # into the URL automatically
+}
+
+shinyApp(ui, server, enableBookmarking = "url")</code></pre></div>
+        <div class="callout note"><div class="callout-title">Why ui must be a function here</div><p>Bookmarking restores state by re-running the UI with the saved values already present — which is only possible because <code>ui</code> is a function of the request (Module 06), not a fixed object.</p></div>
+      </section>
+
+      <section class="module" id="m29" data-group="Part III — Reactivity">
+        <div class="module-eyebrow">Module 29</div>
+        <h2>Updating inputs from the server</h2>
+        <p class="dek">Every input widget has a matching <code>update*Input()</code> function, called from inside the server, that changes it after the page has loaded — without rebuilding the whole widget.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  selectInput("country", "Country", choices = c("USA", "Canada")),
+  selectInput("city", "City", choices = NULL),
+  actionButton("reset", "Reset city")
+)
+
+server &lt;- function(input, output, session) {
+
+  observeEvent(input$country, {
+    cities &lt;- if (input$country == "USA") {
+      c("New York", "Chicago", "Austin")
+    } else {
+      c("Toronto", "Vancouver", "Montreal")
+    }
+    updateSelectInput(session, "city", choices = cities)
+  })
+
+  observeEvent(input$reset, {
+    updateSelectInput(session, "city", selected = character(0))
+  })
+}</code></pre></div>
+
+        <h3 id="m29-catalog">A quick catalog</h3>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Widget</th><th>Update function</th></tr></thead>
+            <tbody>
+              <tr><td><code>textInput()</code></td><td><code>updateTextInput()</code></td></tr>
+              <tr><td><code>numericInput()</code></td><td><code>updateNumericInput()</code></td></tr>
+              <tr><td><code>sliderInput()</code></td><td><code>updateSliderInput()</code></td></tr>
+              <tr><td><code>selectInput()</code></td><td><code>updateSelectInput()</code></td></tr>
+              <tr><td><code>checkboxGroupInput()</code></td><td><code>updateCheckboxGroupInput()</code></td></tr>
+              <tr><td><code>tabsetPanel()</code></td><td><code>updateTabsetPanel()</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn"><div class="callout-title">⚠ Avoid update-loops</div><p>An <code>observeEvent(input$x, updateXInput(session, "x", ...))</code> that sets <code>x</code> to a genuinely new value will re-trigger itself. Shiny deduplicates identical consecutive values to prevent infinite loops, but logic that always produces a <em>different</em> value each time can still spin — guard with a condition if needed.</p></div>
+
+        <h3 id="m29-cascade">Worked example: a three-level cascading filter</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  selectInput("study", "Study", choices = c("Study 001", "Study 002")),
+  selectInput("arm", "Arm", choices = NULL),
+  selectInput("subject", "Subject", choices = NULL)
+)
+
+server &lt;- function(input, output, session) {
+
+  observeEvent(input$study, {
+    arms &lt;- arms_for_study(input$study)
+    updateSelectInput(session, "arm", choices = arms)
+  })
+
+  observeEvent(input$arm, {
+    req(input$arm)
+    subjects &lt;- subjects_for_arm(input$study, input$arm)
+    updateSelectInput(session, "subject", choices = subjects)
+  }, ignoreInit = TRUE)
+}</code></pre></div>
+        <p>Each level only knows about the level directly above it — <code>study</code> drives <code>arm</code>, <code>arm</code> drives <code>subject</code> — and updating one automatically cascades because changing <code>arm</code>'s choices fires its own <code>observeEvent()</code> in turn. <code>ignoreInit = TRUE</code> on the second observer avoids populating <code>subject</code> before <code>arm</code> has ever actually changed.</p>
+      </section>
+
+      <section class="module" id="m30" data-group="Part III — Reactivity">
+        <div class="module-eyebrow">Module 30</div>
+        <h2>Validation — req(), validate(), need()</h2>
+        <p class="dek">Two different failure modes for reactive code: quietly waiting, and visibly explaining.</p>
+
+        <h3 id="m30-req">req() — gracefully waiting for input</h3>
+        <p><code>req()</code> silently stops execution of the current reactive block if its argument isn't yet available (e.g. an empty text box, or a file not yet uploaded) — instead of throwing a visible error.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>output$greeting &lt;- renderText({
+  req(input$username)                 # do nothing until this is non-empty
+  paste("Welcome,", input$username)
+})</code></pre></div>
+
+        <h3 id="m30-validate">validate() + need() — user-facing messages</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>output$plot &lt;- renderPlot({
+  validate(
+    need(input$x != "", "Please choose an x variable"),
+    need(nrow(filteredData()) &gt; 0, "No rows match this filter")
+  )
+  plot(filteredData())
+})</code></pre></div>
+
+        <h3 id="m30-difference">req() vs. validate(): when to use which</h3>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th></th><th><code>req()</code></th><th><code>validate() + need()</code></th></tr></thead>
+            <tbody>
+              <tr><td>On failure</td><td>Output silently shows nothing</td><td>Output shows a styled message explaining why</td></tr>
+              <tr><td>Best for</td><td>Expected, momentary states — "user hasn't typed yet"</td><td>States the user should understand and can fix — "no data matches"</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="relates">Builds on → <a href="#m22">Module 22 — The Reactive Graph</a>: both functions work by throwing a special "silent" condition that Shiny's reactive engine catches and treats as "stop here," rather than as an application error.</p>
+      </section>
+
+      <section class="module" id="m31" data-group="Part III — Reactivity">
+        <div class="module-eyebrow">Module 31</div>
+        <h2>Notifications, progress &amp; modals</h2>
+        <p class="dek">Three ways to talk back to the user beyond updating an output.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+
+  observeEvent(input$save, {
+    showNotification("Saved successfully.", type = "message", duration = 3)
+  })
+
+  observeEvent(input$run, {
+    withProgress(message = "Crunching numbers...", value = 0, {
+      for (i in 1:10) {
+        Sys.sleep(0.1)
+        incProgress(1 / 10)
+      }
+    })
+  })
+
+  observeEvent(input$deleteAll, {
+    showModal(modalDialog(
+      title = "Are you sure?",
+      "This will permanently delete all records.",
+      footer = tagList(
+        modalButton("Cancel"),
+        actionButton("confirmDelete", "Delete", class = "btn-danger")
+      )
+    ))
+  })
+
+  observeEvent(input$confirmDelete, {
+    removeModal()
+    showNotification("All records deleted.", type = "warning")
+  })
+}</code></pre></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Function</th><th>Use for</th></tr></thead>
+            <tbody>
+              <tr><td><code>showNotification()</code></td><td>Non-blocking "toast" messages — success, warnings, errors</td></tr>
+              <tr><td><code>withProgress()</code> / <code>incProgress()</code></td><td>A progress bar for long-running operations</td></tr>
+              <tr><td><code>showModal()</code> / <code>modalDialog()</code></td><td>Blocking dialogs that require a decision before continuing</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="m31-persistent">A persistent "processing" notification that updates itself</h3>
+        <p>Giving a notification an explicit <code>id</code> lets a later call replace it in place, instead of stacking a new toast on top — useful for "step 1 of 3... step 2 of 3..." style progress:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>observeEvent(input$exportReport, {
+  id &lt;- showNotification("Validating data...", duration = NULL)
+  Sys.sleep(1)
+  removeNotification(id)
+
+  id &lt;- showNotification("Generating tables...", duration = NULL)
+  Sys.sleep(1)
+  removeNotification(id)
+
+  showNotification("Report ready for download.", type = "message", duration = 4)
+})</code></pre></div>
+        <p><code>duration = NULL</code> keeps a notification on screen until explicitly removed with <code>removeNotification(id)</code> — the pattern behind any multi-stage background task that should keep the user informed of which stage is running.</p>
+      </section>
+
+      <!-- ============================================================ PART IV ============================================================ -->
+      <div class="parttitle">Part IV — Architecture &amp; Style</div>
+
+      <section class="module" id="m32" data-group="Part IV — Architecture">
+        <div class="module-eyebrow">Module 32</div>
+        <h2>Shiny modules</h2>
+        <p class="dek">A Shiny module is a mini app-within-an-app: a UI function and a server function, paired together, whose input/output IDs are automatically namespaced so they can't collide with the rest of your app.</p>
+
+        <p>Once an app grows past a few hundred lines, or you find yourself copy-pasting a control into several tabs, it's time to extract a module. Modules are ordinary R functions — they compose, take arguments, and can be tested independently of the rest of the app.</p>
+
+        <h3 id="m32-anatomy">Anatomy of a module</h3>
+        <div class="code-block" data-title="modules/histogram_module.R" data-lang="r"><pre><code>library(shiny)
+
+# --- UI function -----------------------------------------------------
+histogramUI &lt;- function(id) {
+  ns &lt;- NS(id)                       # namespace helper, tied to this id
+  tagList(
+    sliderInput(ns("bins"), "Bins", min = 5, max = 50, value = 20),
+    plotOutput(ns("plot"))
+  )
+}
+
+# --- Server function ---------------------------------------------------
+histogramServer &lt;- function(id, data) {
+  moduleServer(id, function(input, output, session) {
+    output$plot &lt;- renderPlot({
+      hist(data(), breaks = input$bins, col = "steelblue", border = "white")
+    })
+  })
+}</code></pre></div>
+        <p>Every <code>inputId</code>/<code>outputId</code> inside the module is wrapped in <code>ns(...)</code>, which prefixes it with the module's instance ID (e.g. <code>"panel1-bins"</code>). That means the same module can be mounted twice in one app, and the two copies never interfere with each other.</p>
+
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+source("modules/histogram_module.R")
+
+ui &lt;- fluidPage(
+  titlePanel("Two independent histogram modules"),
+  fluidRow(
+    column(6, h4("Old Faithful — waiting"), histogramUI("panel1")),
+    column(6, h4("mtcars — mpg"),          histogramUI("panel2"))
+  )
+)
+
+server &lt;- function(input, output, session) {
+  histogramServer("panel1", data = reactive(faithful$waiting))
+  histogramServer("panel2", data = reactive(mtcars$mpg))
+}
+
+shinyApp(ui, server)</code></pre></div>
+
+        <h3 id="m32-communication">Communication between modules</h3>
+        <p>Modules communicate through ordinary R function arguments and return values — a module can accept a <code>reactive()</code> as an argument (as above with <code>data</code>), and can <code>return()</code> a reactive expression for its caller to use elsewhere.</p>
+        <div class="code-block" data-title="modules/filter_module.R" data-lang="r"><pre><code>filterUI &lt;- function(id) {
+  ns &lt;- NS(id)
+  selectInput(ns("cyl"), "Cylinders", choices = sort(unique(mtcars$cyl)), multiple = TRUE)
+}
+
+filterServer &lt;- function(id) {
+  moduleServer(id, function(input, output, session) {
+    # Return a reactive so the PARENT app can react to this module's state
+    reactive({
+      req(input$cyl)
+      subset(mtcars, cyl %in% input$cyl)
+    })
+  })
+}</code></pre></div>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+  filtered &lt;- filterServer("filters")     # returned reactive from the module
+
+  output$plot &lt;- renderPlot({
+    plot(filtered()$wt, filtered()$mpg)   # used directly in the parent app
+  })
+}</code></pre></div>
+
+        <div class="callout tip"><div class="callout-title">💡 When to reach for modules</div><p>As soon as a piece of UI + logic is used more than once, or a single-file app becomes hard to navigate — usually somewhere past 200–300 lines. Split by <em>feature</em> ("filters", "upload"), not by file type.</p></div>
+
+        <h3 id="m32-dynamic-instances">Creating a variable number of module instances</h3>
+        <p>Modules aren't limited to a fixed number of copies written by hand — <code>lapply()</code> can mount one per element of a vector, which is how you'd build "one card per study site" or "one panel per treatment arm" without knowing the count in advance:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>arms &lt;- c("Placebo", "Low Dose", "High Dose")
+
+ui &lt;- fluidPage(
+  fluidRow(
+    lapply(arms, function(a) {
+      column(4, summaryCardUI(id = a))    # one module instance per arm, id = arm name
+    })
+  )
+)
+
+server &lt;- function(input, output, session) {
+  lapply(arms, function(a) {
+    summaryCardServer(id = a, data = reactive(subset(trial_data, arm == a)))
+  })
+}</code></pre></div>
+        <div class="callout warn"><div class="callout-title">⚠ Force evaluation inside the loop</div><p>In older R/Shiny code you may see <code>local({ a &lt;- a; ... })</code> wrapped around the loop body — a workaround for lazy evaluation capturing the wrong <code>a</code>. Modern <code>lapply()</code>-based module instantiation like above does not need this, since each call gets its own function-call environment.</p></div>
+      </section>
+
+      <section class="module" id="m33" data-group="Part IV — Architecture">
+        <div class="module-eyebrow">Module 33</div>
+        <h2>Styling with CSS &amp; htmltools</h2>
+        <p class="dek">Shiny apps render as ordinary Bootstrap HTML, so anything you know about CSS applies directly.</p>
+
+        <h3 id="m33-css">Custom CSS: three ways</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code># 1. Inline, via tags$style()
+ui &lt;- fluidPage(
+  tags$style(HTML("
+    .well { border-radius: 12px; background: #f5f6fa; }
+    h2 { font-family: Georgia, serif; }
+  ")),
+  ...
+)
+
+# 2. From an external file in www/ (Shiny auto-serves this folder)
+ui &lt;- fluidPage(
+  tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")),
+  ...
+)
+
+# 3. includeCSS() — reads a file's contents and inlines it
+ui &lt;- fluidPage(
+  includeCSS("www/styles.css"),
+  ...
+)</code></pre></div>
+        <div class="callout note"><div class="callout-title">The www/ convention</div><p>Any file placed in a folder named <code>www/</code> next to <code>app.R</code> is automatically served as a static asset — reference it with a relative path like <code>href="styles.css"</code>, not <code>"www/styles.css"</code>.</p></div>
+
+        <h3 id="m33-htmltools">Building custom UI with htmltools tags</h3>
+        <p>Every visible piece of UI Shiny produces is built from <code>htmltools</code> tag functions. Use them directly for full control over structure:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- fluidPage(
+  div(class = "card p-3 shadow-sm",
+    h4("Custom card"),
+    p("Built with tags$div(), h4(), p() directly."),
+    tags$a(href = "https://shiny.posit.co", target = "_blank", "Docs ↗")
+  )
+)</code></pre></div>
+
+        <h3 id="m33-css-classes">Reference: common htmltools tag functions</h3>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Function</th><th>HTML tag</th></tr></thead>
+            <tbody>
+              <tr><td><code>div()</code>, <code>p()</code>, <code>span()</code>, <code>h1()</code>–<code>h6()</code></td><td>Shortcuts for the most common tags</td></tr>
+              <tr><td><code>tags$xyz(...)</code></td><td>Any HTML tag not given a shortcut — e.g. <code>tags$aside()</code>, <code>tags$figure()</code></td></tr>
+              <tr><td><code>tagList(...)</code></td><td>Groups several tags together without an extra wrapping element</td></tr>
+              <tr><td><code>HTML("...")</code></td><td>Marks a raw string as already-safe HTML (bypasses escaping)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="m33-devtools">Finding the right class to target</h3>
+        <p>Because Shiny's generated HTML follows Bootstrap conventions, browser developer tools (right-click → Inspect) let you find exactly which class to target before writing any CSS — right-click the slider, checkbox, or panel you want to restyle, note the class Shiny gave it (e.g. <code>.irs-bar</code> for a slider's filled track), then target that class in <code>tags$style()</code>.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>tags$style(HTML("
+  .irs-bar, .irs-bar-edge { background: #3B54D6; border-color: #3B54D6; }
+  .btn-primary { background-color: #3B54D6; border-color: #3B54D6; }
+"))</code></pre></div>
+      </section>
+
+      <section class="module" id="m34" data-group="Part IV — Architecture">
+        <div class="module-eyebrow">Module 34</div>
+        <h2>Theming with bslib</h2>
+        <p class="dek"><code>bslib</code> brings modern Bootstrap 5 and full design-token theming to Shiny — a polished look with little to no hand-written CSS.</p>
+
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+library(bslib)
+
+ui &lt;- fluidPage(
+  theme = bs_theme(
+    version   = 5,
+    bootswatch = "flatly",       # or "darkly", "cosmo", "minty", ...
+    primary   = "#3B54D6",
+    base_font = font_google("Source Sans 3"),
+    heading_font = font_google("Fraunces")
+  ),
+  titlePanel("Themed app"),
+  sliderInput("n", "N", 1, 100, 50),
+  plotOutput("plot")
+)</code></pre></div>
+
+        <h3 id="m34-components">bslib layout components</h3>
+        <p><code>bslib</code> also ships modern layout primitives that replace older <code>shinydashboard</code>-style boilerplate — <code>page_sidebar()</code>, <code>card()</code>, and <code>layout_columns()</code>:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(bslib)
+
+ui &lt;- page_sidebar(
+  title = "bslib layout demo",
+  sidebar = sidebar(sliderInput("n", "N", 1, 100, 50)),
+  layout_columns(
+    col_widths = c(6, 6),
+    card(card_header("Chart"), plotOutput("plot")),
+    card(card_header("Table"), tableOutput("table"))
+  )
+)</code></pre></div>
+
+        <h3 id="m34-darkmode">Runtime dark-mode toggle</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>ui &lt;- page_sidebar(
+  title = "Toggle demo",
+  sidebar = sidebar(input_dark_mode(id = "mode")),
+  plotOutput("plot")
+)</code></pre></div>
+        <p class="relates">Builds on → <a href="#m33">Module 33 — Styling with CSS</a>: <code>bslib</code> themes still generate ordinary CSS custom properties under the hood, so hand-written CSS and <code>bs_theme()</code> can be mixed freely.</p>
+
+        <h3 id="m34-valuebox">value_box() for at-a-glance KPIs</h3>
+        <p>A common dashboard need — a big number with a label, optionally colored by status — has a dedicated component rather than requiring hand-built HTML:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(bslib)
+
+ui &lt;- page_sidebar(
+  title = "Enrollment status",
+  layout_columns(
+    value_box(title = "Enrolled", value = "84", showcase = bsicons::bs_icon("people")),
+    value_box(title = "Target", value = "100", theme = "secondary"),
+    value_box(title = "Screen failures", value = "6", theme = "danger")
+  )
+)</code></pre></div>
+        <p><code>theme</code> maps directly onto Bootstrap's semantic color roles (<code>"primary"</code>, <code>"secondary"</code>, <code>"success"</code>, <code>"danger"</code>, <code>"warning"</code>) — reuse them instead of hardcoding hex colors, and they'll stay consistent with whatever <code>bs_theme()</code> you set at the page level.</p>
+      </section>
+
+      <!-- ============================================================ PART V ============================================================ -->
+      <div class="parttitle">Part V — Data, Plots &amp; Widgets</div>
+
+      <section class="module" id="m35" data-group="Part V — Data &amp; Widgets">
+        <div class="module-eyebrow">Module 35</div>
+        <h2>Interactive tables with DT</h2>
+        <p class="dek">The <code>DT</code> package wraps the JavaScript DataTables library, giving you sortable, searchable, paginated tables with almost no configuration.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+library(DT)
+
+ui &lt;- fluidPage(DTOutput("tbl"))
+
+server &lt;- function(input, output, session) {
+  output$tbl &lt;- renderDT({
+    datatable(mtcars, filter = "top", options = list(pageLength = 10))
+  })
+}
+
+shinyApp(ui, server)</code></pre></div>
+
+        <h3 id="m35-selection">Reading row selections back into the server</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>output$tbl &lt;- renderDT({
+  datatable(mtcars, selection = "single")
+})
+
+output$selectedRow &lt;- renderPrint({
+  req(input$tbl_rows_selected)
+  mtcars[input$tbl_rows_selected, ]
+})</code></pre></div>
+        <p><code>DT</code> automatically creates extra <code>input$</code> values for you — <code>input$tbl_rows_selected</code>, <code>input$tbl_rows_current</code>, <code>input$tbl_search</code> — letting the server react to how the user is interacting with the table itself, not just the data behind it.</p>
+
+        <h3 id="m35-format">Formatting columns</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>datatable(mtcars) |&gt;
+  formatCurrency("disp", "$") |&gt;
+  formatPercentage("qsec", 1) |&gt;
+  formatStyle("mpg", backgroundColor = styleInterval(20, c("#FBE7E2", "#DFF4F0")))</code></pre></div>
+
+        <h3 id="m35-serverside">Server-side processing for large datasets</h3>
+        <p>By default, <code>DT</code> ships the entire dataset to the browser and does sorting/filtering in JavaScript — fine for thousands of rows, wasteful for hundreds of thousands. <code>server = TRUE</code> keeps the full data on the R side and only sends the current page:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>output$bigTable &lt;- renderDT({
+  datatable(huge_ae_listing, options = list(pageLength = 25))
+}, server = TRUE)   # default is TRUE for renderDT() — shown here for clarity</code></pre></div>
+        <div class="callout note"><div class="callout-title">The tradeoff</div><p>Server-side processing means every sort/search/page click round-trips to R — snappier for huge tables than shipping everything to the browser, but each interaction now depends on server latency rather than being instant in JS.</p></div>
+      </section>
+
+      <section class="module" id="m36" data-group="Part V — Data &amp; Widgets">
+        <div class="module-eyebrow">Module 36</div>
+        <h2>Interactive plots with plotly &amp; htmlwidgets</h2>
+        <p class="dek">Beyond static plots, the <code>htmlwidgets</code> standard lets JavaScript visualization libraries plug directly into Shiny's render/output pattern.</p>
+
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+library(plotly)
+
+ui &lt;- fluidPage(plotlyOutput("interactivePlot"))
+
+server &lt;- function(input, output, session) {
+  output$interactivePlot &lt;- renderPlotly({
+    plot_ly(mtcars, x = ~wt, y = ~mpg, color = ~factor(cyl),
+            type = "scatter", mode = "markers")
+  })
+}
+
+shinyApp(ui, server)</code></pre></div>
+
+        <h3 id="m36-ggplotly">Converting an existing ggplot2 chart</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(ggplot2)
+library(plotly)
+
+output$interactivePlot &lt;- renderPlotly({
+  p &lt;- ggplot(mtcars, aes(wt, mpg, color = factor(cyl))) + geom_point()
+  ggplotly(p)   # wraps an existing ggplot2 object, adding hover/zoom for free
+})</code></pre></div>
+
+        <h3 id="m36-events">Reading plotly click/hover events</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>output$clickInfo &lt;- renderPrint({
+  event_data("plotly_click")
+})</code></pre></div>
+
+        <h3 id="m36-pattern">The htmlwidgets pattern, generalized</h3>
+        <p>Any package following the <code>htmlwidgets</code> convention (plotly, leaflet, DT, visNetwork, dygraphs...) slots into Shiny the same way: a <code>*Output()</code> placeholder paired with a <code>render*()</code> function. Learn the pattern once, reuse it everywhere:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(leaflet)
+
+ui &lt;- fluidPage(leafletOutput("map"))
+
+server &lt;- function(input, output, session) {
+  output$map &lt;- renderLeaflet({
+    leaflet() |&gt; addTiles() |&gt; setView(lng = -0.09, lat = 51.5, zoom = 11)
+  })
+}</code></pre></div>
+
+        <h3 id="m36-subplot">Combining multiple plotly charts with subplot()</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(plotly)
+
+output$combined &lt;- renderPlotly({
+  p1 &lt;- plot_ly(ae_data, x = ~arm, type = "histogram")
+  p2 &lt;- plot_ly(ae_data, x = ~enrollment_date, type = "histogram")
+  subplot(p1, p2, nrows = 1, shareY = TRUE, titleX = TRUE)
+})</code></pre></div>
+        <p><code>subplot()</code> arranges several plotly objects into a single widget with linked interactions (shared zoom/pan by default) — useful when two related charts should be read and explored together rather than as separate outputs.</p>
+      </section>
+
+      <section class="module" id="m37" data-group="Part V — Data &amp; Widgets">
+        <div class="module-eyebrow">Module 37</div>
+        <h2>File downloads with downloadHandler()</h2>
+        <p class="dek">The output side of file transfer — pairs with <code>downloadButton()</code>/<code>downloadLink()</code> in the UI.</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+
+ui &lt;- fluidPage(
+  downloadButton("dl", "Download mtcars.csv")
+)
+
+server &lt;- function(input, output, session) {
+  output$dl &lt;- downloadHandler(
+    filename = function() paste0("mtcars-", Sys.Date(), ".csv"),
+    content  = function(file) write.csv(mtcars, file, row.names = FALSE)
+  )
+}
+
+shinyApp(ui, server)</code></pre></div>
+        <p><code>filename</code> is a function returning the name the browser will save the file as; <code>content</code> is a function that receives a temporary file path and must write the download's actual bytes there. Because both are functions, they can read <code>input$</code>/reactive values to produce a download tailored to the app's current state.</p>
+
+        <h3 id="m37-plot-download">Downloading a plot as an image</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>output$dlPlot &lt;- downloadHandler(
+  filename = "chart.png",
+  content = function(file) {
+    png(file, width = 800, height = 500)
+    plot(mtcars$wt, mtcars$mpg)
+    dev.off()
+  }
+)</code></pre></div>
+
+        <h3 id="m37-zip">Downloading multiple files as a zip</h3>
+        <p>A common TFL need — "give me every table and figure as one archive" — is a straightforward extension: write each piece to the temp directory, then zip them:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>output$dlAll &lt;- downloadHandler(
+  filename = "study_outputs.zip",
+  content = function(file) {
+    tmpDir &lt;- tempdir()
+    files &lt;- c(
+      file.path(tmpDir, "demographics.csv"),
+      file.path(tmpDir, "ae_listing.csv")
+    )
+    write.csv(demo_data, files[1], row.names = FALSE)
+    write.csv(ae_data, files[2], row.names = FALSE)
+    zip::zip(file, files = files, mode = "cherry-pick")
+  }
+)</code></pre></div>
+      </section>
+
+      <section class="module" id="m37c" data-group="Part V — Data &amp; Widgets">
+        <div class="module-eyebrow">Module 37B</div>
+        <h2>Case study — a clinical trial safety dashboard</h2>
+        <p class="dek">Every concept from Parts II and III, applied to the kind of data an IASCT/TFL audience actually works with: patient-level demographics, adverse events, and enrollment over time.</p>
+
+        <h3 id="m37c-problem">The business problem</h3>
+        <p>A study team running a three-arm trial (Placebo, Low Dose, High Dose) needs a tool the safety monitoring committee can use <em>without R installed</em>: filter the adverse-event (AE) listing by treatment arm and severity, see how AE counts break down by arm, and track enrollment against target — updating live as new subjects are entered, rather than waiting for a re-run of a static TFL (Tables, Figures, Listings) output.</p>
+
+        <h3 id="m37c-data">Building a representative sample dataset</h3>
+        <p>Real trial data would come from a validated ADaM/SDTM pipeline (<code>read_sas()</code>/<code>read_xpt()</code> via the <code>haven</code> package, typically). For this module, we simulate a comparable shape so the app is fully runnable on its own:</p>
+        <div class="code-block" data-title="R" data-lang="r"><pre><code>set.seed(42)
+n &lt;- 120
+
+trial_data &lt;- data.frame(
+  patient_id = sprintf("PT-%03d", 1:n),
+  arm        = sample(c("Placebo", "Low Dose", "High Dose"), n,
+                       replace = TRUE, prob = c(0.34, 0.33, 0.33)),
+  age        = pmax(18, round(rnorm(n, mean = 54, sd = 12))),
+  sex        = sample(c("M", "F"), n, replace = TRUE),
+  ae_term    = sample(c("Headache", "Nausea", "Fatigue", "Rash", "Dizziness", "None"),
+                       n, replace = TRUE, prob = c(.12, .10, .15, .05, .08, .50)),
+  severity   = sample(c("Mild", "Moderate", "Severe"), n,
+                       replace = TRUE, prob = c(.6, .3, .1)),
+  enrollment_date = as.Date("2024-01-01") + sample(0:180, n, replace = TRUE)
+)</code></pre></div>
+
+        <h3 id="m37c-app">The complete application</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+library(bslib)
+library(DT)
+library(ggplot2)
+
+# ---- simulate a study population (replace with your ADaM/SDTM read) -------
+set.seed(42)
+n &lt;- 120
+trial_data &lt;- data.frame(
+  patient_id = sprintf("PT-%03d", 1:n),
+  arm        = sample(c("Placebo", "Low Dose", "High Dose"), n,
+                       replace = TRUE, prob = c(.34, .33, .33)),
+  age        = pmax(18, round(rnorm(n, mean = 54, sd = 12))),
+  sex        = sample(c("M", "F"), n, replace = TRUE),
+  ae_term    = sample(c("Headache", "Nausea", "Fatigue", "Rash", "Dizziness", "None"),
+                       n, replace = TRUE, prob = c(.12, .10, .15, .05, .08, .50)),
+  severity   = sample(c("Mild", "Moderate", "Severe"), n,
+                       replace = TRUE, prob = c(.6, .3, .1)),
+  enrollment_date = as.Date("2024-01-01") + sample(0:180, n, replace = TRUE)
+)
+
+# ---- UI ---------------------------------------------------------------------
+ui &lt;- page_sidebar(
+  title = "Study 001 — Safety Monitoring Dashboard",
+  theme = bs_theme(version = 5, primary = "#3B54D6"),
+
+  sidebar = sidebar(
+    checkboxGroupInput("arm", "Treatment arm",
+                        choices = unique(trial_data$arm),
+                        selected = unique(trial_data$arm)),
+    radioButtons("severity", "Minimum severity to show",
+                 choices = c("Mild", "Moderate", "Severe"), selected = "Mild"),
+    downloadButton("dlListing", "Download AE listing")
+  ),
+
+  layout_columns(
+    col_widths = c(4, 4, 4, 12),
+    value_box(title = "Enrolled", value = textOutput("nEnrolled")),
+    value_box(title = "Subjects with an AE", value = textOutput("nWithAE")),
+    value_box(title = "Serious/Severe AEs", value = textOutput("nSevere")),
+    card(card_header("AE listing (filtered)"), DTOutput("aeTable"))
+  ),
+
+  layout_columns(
+    col_widths = c(6, 6),
+    card(card_header("AE count by treatment arm"), plotOutput("aeByArm", height = 260)),
+    card(card_header("Cumulative enrollment"), plotOutput("enrollCurve", height = 260))
+  )
+)
+
+# ---- server -------------------------------------------------------------------
+server &lt;- function(input, output, session) {
+
+  severityRank &lt;- c(Mild = 1, Moderate = 2, Severe = 3)
+
+  filtered &lt;- reactive({
+    req(input$arm)
+    subset(trial_data,
+           arm %in% input$arm &amp;
+           severityRank[severity] &gt;= severityRank[input$severity])
+  })
+
+  output$nEnrolled &lt;- renderText({ nrow(filtered()) })
+
+  output$nWithAE &lt;- renderText({
+    sum(filtered()$ae_term != "None")
+  })
+
+  output$nSevere &lt;- renderText({
+    sum(filtered()$severity == "Severe")
+  })
+
+  output$aeTable &lt;- renderDT({
+    datatable(
+      subset(filtered(), ae_term != "None",
+             select = c(patient_id, arm, age, sex, ae_term, severity)),
+      options = list(pageLength = 8), rownames = FALSE
+    )
+  })
+
+  output$aeByArm &lt;- renderPlot({
+    validate(need(nrow(filtered()) &gt; 0, "No subjects match the current filters"))
+    ggplot(subset(filtered(), ae_term != "None"), aes(x = arm, fill = severity)) +
+      geom_bar(position = "stack") +
+      scale_fill_manual(values = c(Mild = "#0E8C7D", Moderate = "#E3A75E", Severe = "#C4432F")) +
+      labs(x = NULL, y = "AE count", fill = "Severity") +
+      theme_minimal()
+  })
+
+  output$enrollCurve &lt;- renderPlot({
+    ordered &lt;- filtered()[order(filtered()$enrollment_date), ]
+    ordered$cumulative &lt;- seq_len(nrow(ordered))
+    ggplot(ordered, aes(enrollment_date, cumulative)) +
+      geom_step(color = "#3B54D6", linewidth = 1) +
+      labs(x = NULL, y = "Cumulative subjects enrolled") +
+      theme_minimal()
+  })
+
+  output$dlListing &lt;- downloadHandler(
+    filename = function() paste0("ae_listing_", Sys.Date(), ".csv"),
+    content  = function(file) write.csv(filtered(), file, row.names = FALSE)
+  )
+}
+
+shinyApp(ui, server)</code></pre></div>
+
+        <h3 id="m37c-workflow">What happens, step by step</h3>
+        <ol>
+          <li>The committee unchecks <strong>Placebo</strong> in the sidebar. That's a change to <code>input$arm</code>.</li>
+          <li>Shiny invalidates <code>filtered()</code> (Module 22) — it's the only reactive expression that reads <code>input$arm</code>.</li>
+          <li>Because <code>nEnrolled</code>, <code>nWithAE</code>, <code>nSevere</code>, <code>aeTable</code>, <code>aeByArm</code>, and <code>enrollCurve</code> all call <code>filtered()</code>, all six are invalidated too — but <code>filtered()</code> itself only re-executes <em>once</em> (Module 23's laziness-plus-caching), not six times.</li>
+          <li>Each output then re-renders independently from that single shared, filtered subset — the AE bar chart, the enrollment curve, and the listing table all stay perfectly in sync with no extra code required to keep them consistent.</li>
+          <li>Clicking <strong>Download AE listing</strong> hands the current <code>filtered()</code> result — exactly what's on screen — to <code>downloadHandler()</code> (Module 37), so the exported CSV always matches the visible filters.</li>
+        </ol>
+
+        <h3 id="m37c-learnings">Key learning points</h3>
+        <ul>
+          <li><strong>One reactive, many consumers.</strong> This is the pattern from Module 23 doing real work — six outputs, one source of truth, zero duplicated filtering logic.</li>
+          <li><strong>validate()/need() for the "empty result" case</strong> (Module 30) — unchecking every arm shouldn't crash the chart, it should explain itself.</li>
+          <li><strong>Named-vector lookups double as data recoding</strong> — <code>severityRank[severity]</code> turns an ordered factor-like column into a comparable integer in one line, a common clinical-data idiom.</li>
+          <li><strong>The download always matches the screen</strong> because both read the same <code>filtered()</code> reactive — a subtle but important correctness guarantee for anything a committee might sign off on.</li>
+        </ul>
+
+        <h3 id="m37c-summary">Summary</h3>
+        <p>Nothing in this dashboard is a new Shiny concept — it's Modules 17 (choices), 22–23 (the reactive graph and <code>reactive()</code>), 30 (validation), 34 (bslib layout), 35 (DT), 36 (ggplot2 plots), and 37 (downloads), composed around a domain a clinical audience recognizes immediately. That composability — small, well-understood pieces combining into a real tool — is the actual skill this guide is teaching.</p>
+
+        <div class="callout tip">
+          <div class="callout-title">💡 Extending this toward a real TFL workflow</div>
+          <p>Swap the simulated <code>trial_data</code> for <code>haven::read_sas("adae.sas7bdat")</code>, add a module (Module 32) per domain (AE, demographics, labs), and reuse the same "one filtered reactive, many outputs" pattern per domain — each module gets its own <code>filtered()</code>, namespaced automatically.</p>
+        </div>
+      </section>
+
+      <!-- ============================================================ PART VI ============================================================ -->
+      <div class="parttitle">Part VI — Production</div>
+
+      <section class="module" id="m38" data-group="Part VI — Production">
+        <div class="module-eyebrow">Module 38</div>
+        <h2>Asynchronous programming &amp; debugging</h2>
+        <p class="dek">By default, a Shiny process handles one thing at a time per session — a slow computation for one user blocks that user's whole app until it finishes. Async patterns fix this; debugging tools help you see the reactive graph clearly.</p>
+
+        <h3 id="m38-promises">promises &amp; future — non-blocking long tasks</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+library(promises)
+library(future)
+plan(multisession)   # run futures in background R processes
+
+server &lt;- function(input, output, session) {
+  output$result &lt;- renderText({
+    future({
+      Sys.sleep(3)          # simulate a slow computation
+      "Done!"
+    }) %...&gt;% { . }         # resolve the promise into the render output
+  })
+}</code></pre></div>
+        <div class="callout note"><div class="callout-title">Async helps other sessions, not this one</div><p><code>future()</code> frees the current session from blocking on this one computation, and — critically — frees the R process to keep serving <em>other</em> users' sessions while it waits. It does not make the computation itself faster.</p></div>
+
+        <h3 id="m38-browser">browser() — breakpoints inside reactive code</h3>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>output$plot &lt;- renderPlot({
+  browser()                 # execution pauses here when this block runs
+  plot(filteredData())
+})</code></pre></div>
+        <p>When a reactive block hits <code>browser()</code>, execution pauses in the R console with full access to that block's local variables — including the current value of any <code>input$</code> or <code>reactive()</code> it has already read.</p>
+
+        <h3 id="m38-reactlog">Visualizing the reactive graph with reactlog</h3>
+        <div class="code-block" data-title="console" data-lang="r"><pre><code>install.packages("reactlog")
+library(reactlog)
+
+reactlog_enable()
+shiny::runApp("app.R")
+# after interacting with the app, press Ctrl+F3 (Cmd+F3 on Mac)
+# to open a visual, browsable diagram of every reactive dependency</code></pre></div>
+
+        <h3 id="m38-errors">Catching errors gracefully in production</h3>
+        <p>An uncaught error inside a reactive block normally shows the user a generic "An error occurred" message and stops that output — <code>options(shiny.sanitize.errors = ...)</code> and per-block <code>tryCatch()</code> control how much detail leaks through:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>options(shiny.sanitize.errors = TRUE)   # hide internal error text from end users in production
+
+output$result &lt;- renderTable({
+  tryCatch({
+    risky_computation(input$x)
+  }, error = function(e) {
+    validate("Something went wrong processing that input — please check the values and try again.")
+  })
+})</code></pre></div>
+        <div class="callout warn"><div class="callout-title">⚠ Sanitized errors still log server-side</div><p><code>shiny.sanitize.errors</code> only affects what the <em>browser</em> sees — the real error and stack trace still print to the R console/server logs, which is where you should be looking when debugging a production issue.</p></div>
+      </section>
+
+      <section class="module" id="m39" data-group="Part VI — Production">
+        <div class="module-eyebrow">Module 39</div>
+        <h2>Performance optimization</h2>
+        <p class="dek">Most Shiny performance problems trace back to one of a small set of causes — this module is a checklist.</p>
+        <ul>
+          <li><strong>Share, don't repeat.</strong> If two outputs compute the same filtered/joined data, wrap it once in <code>reactive()</code> (Module 23) instead of recomputing it in each <code>render*()</code>.</li>
+          <li><strong>Debounce noisy inputs.</strong> A text box that fires on every keystroke can flood the server — wrap it with <code>debounce()</code> to wait for the user to pause typing.</li>
+          <li><strong>Isolate what shouldn't retrigger.</strong> Use <code>isolate()</code> (Module 26) or <code>eventReactive()</code> (Module 25) to stop a block from re-running on inputs it only needs to read once per action.</li>
+          <li><strong>Cache across sessions.</strong> <code>bindCache()</code> (Module 23) skips recomputation entirely for repeated inputs.</li>
+          <li><strong>Go async for slow, independent work.</strong> <code>future()</code>/<code>promises</code> (Module 38) frees the process to serve other users while one computation runs.</li>
+          <li><strong>Profile before optimizing.</strong> Use <code>profvis::profvis(runApp())</code> to see exactly where time is spent before changing anything.</li>
+        </ul>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>server &lt;- function(input, output, session) {
+  searchTerm &lt;- reactive({ input$search }) |&gt; debounce(400)
+
+  output$results &lt;- renderTable({
+    req(searchTerm())
+    search_database(searchTerm())
+  })
+}</code></pre></div>
+        <div class="code-block" data-title="console" data-lang="r"><pre><code>install.packages("profvis")
+profvis::profvis(shiny::runApp("app.R"))</code></pre></div>
+
+        <h3 id="m39-memoise">Memoizing plain R functions with memoise</h3>
+        <p><code>bindCache()</code> (Module 23) caches a reactive expression's result; <code>memoise</code> does the same for an ordinary R function, useful for helper functions called from several places, including outside any reactive context:</p>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(memoise)
+
+slow_lookup &lt;- function(subject_id) {
+  Sys.sleep(2)          # simulate a slow database/API call
+  query_registry(subject_id)
+}
+
+fast_lookup &lt;- memoise(slow_lookup)   # identical calls after the first return instantly
+
+server &lt;- function(input, output, session) {
+  output$info &lt;- renderPrint({
+    fast_lookup(input$subjectId)
+  })
+}</code></pre></div>
+      </section>
+
+      <section class="module" id="m40" data-group="Part VI — Production">
+        <div class="module-eyebrow">Module 40</div>
+        <h2>Testing Shiny apps</h2>
+        <p class="dek">Reactive apps can be tested at two levels: server logic in isolation, and full end-to-end browser behavior.</p>
+
+        <h3 id="m40-testserver">testServer() — testing reactive logic directly</h3>
+        <div class="code-block" data-title="tests/testthat/test-server.R" data-lang="r"><pre><code>library(shiny)
+library(testthat)
+
+test_that("counter increments correctly", {
+  testServer(server, {
+    session$setInputs(bump = 1)
+    expect_equal(input$bump, 1)
+
+    session$setInputs(bump = 2)
+    expect_equal(output$count, "Clicked 2 times")
+  })
+})</code></pre></div>
+
+        <h3 id="m40-shinytest2">shinytest2 — full end-to-end tests</h3>
+        <div class="code-block" data-title="tests/testthat/test-app.R" data-lang="r"><pre><code>library(shinytest2)
+
+test_that("app loads and slider updates the plot", {
+  app &lt;- AppDriver$new(app_dir = ".")
+  app$set_inputs(bins = 35)
+  app$expect_screenshot()
+  app$stop()
+})</code></pre></div>
+        <p><code>shinytest2</code> drives a real, headless browser against a real, running instance of your app — it can click buttons, fill in text, and compare screenshots across runs to catch visual regressions, not just logic bugs.</p>
+
+        <h3 id="m40-clinical-test">Worked example: testing a filter's output value</h3>
+        <div class="code-block" data-title="tests/testthat/test-server.R" data-lang="r"><pre><code>test_that("selecting only the Active arm filters out Placebo rows", {
+  testServer(server, {
+    session$setInputs(arm = "Active", severity = "Mild")
+    result &lt;- filtered()
+    expect_true(all(result$arm == "Active"))
+    expect_false(any(result$arm == "Placebo"))
+  })
+})</code></pre></div>
+        <p>Testing the <em>reactive expression itself</em> (<code>filtered()</code>) rather than only the rendered output is usually the higher-value test — it verifies the actual filtering logic independent of how any particular output happens to display it.</p>
+      </section>
+
+      <section class="module" id="m41" data-group="Part VI — Production">
+        <div class="module-eyebrow">Module 41</div>
+        <h2>Deployment &amp; security</h2>
+        <p class="dek">A Shiny app needs an R process running continuously to serve it — deployment means choosing where that process lives.</p>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Option</th><th>Best for</th></tr></thead>
+            <tbody>
+              <tr><td><strong>shinyapps.io</strong></td><td>Fastest path to a public URL. Free tier available; managed hosting by Posit.</td></tr>
+              <tr><td><strong>Posit Connect</strong></td><td>Self-hosted or enterprise publishing for R &amp; Python content, with access control and scheduling.</td></tr>
+              <tr><td><strong>Shiny Server (open source)</strong></td><td>Self-hosted on your own Linux server — free, but you manage the infrastructure.</td></tr>
+              <tr><td><strong>Docker</strong></td><td>Full control and portability — ship the app with R and all dependencies baked into an image.</td></tr>
+              <tr><td><strong>shinylive</strong></td><td>Compiles the app to WebAssembly and runs it entirely client-side, with no R server at all.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 id="m41-shinyappsio">Deploying to shinyapps.io</h3>
+        <div class="code-block" data-title="console" data-lang="r"><pre><code>install.packages("rsconnect")
+library(rsconnect)
+
+rsconnect::setAccountInfo(name = "your-account",
+                          token = "YOUR_TOKEN",
+                          secret = "YOUR_SECRET")
+
+rsconnect::deployApp(appDir = ".", appName = "my-shiny-app")</code></pre></div>
+
+        <h3 id="m41-docker">A minimal Dockerfile</h3>
+        <div class="code-block" data-title="Dockerfile" data-lang="r"><pre><code>FROM rocker/shiny:4.4
+
+RUN R -e "install.packages(c('bslib', 'DT', 'ggplot2'))"
+
+COPY ./app /srv/shiny-server/my-app
+EXPOSE 3838
+
+CMD ["/usr/bin/shiny-server"]</code></pre></div>
+
+        <h3 id="m41-shinylive">shinylive — running entirely in the browser</h3>
+        <div class="code-block" data-title="console" data-lang="r"><pre><code>install.packages("shinylive")
+shinylive::export(appdir = "my_app", destdir = "docs")
+# "docs" now contains static files deployable to GitHub Pages, S3, or any static host</code></pre></div>
+
+        <h3 id="m41-security">Security considerations</h3>
+        <ul>
+          <li><strong>Never trust <code>input$</code> values.</strong> They come directly from the browser and can be manipulated — validate before using them in file paths, SQL, or shell commands.</li>
+          <li><strong>Avoid building SQL with paste/glue on raw input</strong> — use parameterized queries (<code>DBI::dbGetQuery(con, "SELECT * FROM t WHERE id = ?", params = list(input$id))</code>).</li>
+          <li><strong>Restrict file access.</strong> <code>fileInput()</code> uploads go to a Shiny-managed temp path — don't let user input control which server-side file paths get read or written.</li>
+          <li><strong>Set an upload size limit</strong> (Module 18) to avoid denial-of-service via huge uploads.</li>
+          <li><strong>Serve over HTTPS</strong> in production — Posit Connect and shinyapps.io handle this for you; self-hosted Shiny Server needs a reverse proxy (nginx/Apache) in front of it.</li>
+        </ul>
+
+        <h3 id="m41-secrets">Managing credentials with .Renviron</h3>
+        <p>Never hardcode database passwords or API tokens in <code>app.R</code> — read them from environment variables instead, set locally in a <code>.Renviron</code> file (excluded from version control) and configured as secrets in your deployment target:</p>
+        <div class="code-block" data-title=".Renviron" data-lang="r"><pre><code>DB_HOST=clinical-db.internal
+DB_USER=shiny_reader
+DB_PASSWORD=************</code></pre></div>
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>con &lt;- DBI::dbConnect(
+  RPostgres::Postgres(),
+  host = Sys.getenv("DB_HOST"),
+  user = Sys.getenv("DB_USER"),
+  password = Sys.getenv("DB_PASSWORD")
+)</code></pre></div>
+        <div class="callout warn"><div class="callout-title">⚠ Add .Renviron to .gitignore</div><p>A <code>.Renviron</code> file containing real credentials should never be committed. Posit Connect and shinyapps.io both provide their own secret/environment-variable configuration in their deployment settings — set values there for the deployed app, and keep a local-only <code>.Renviron</code> for development.</p></div>
+      </section>
+
+      <!-- ============================================================ PART VII ============================================================ -->
+      <div class="parttitle">Part VII — Practice</div>
+
+      <section class="module" id="m42" data-group="Part VII — Practice">
+        <div class="module-eyebrow">Module 42</div>
+        <h2>Capstone — a small analytics dashboard</h2>
+        <p class="dek">One file that pulls together layouts, inputs, reactivity, a module, theming, and a download handler — the pieces from every module above, in one working app.</p>
+
+        <div class="code-block" data-title="app.R" data-lang="r"><pre><code>library(shiny)
+library(bslib)
+library(ggplot2)
+library(DT)
+
+# ---- a small reusable module: a filtered summary card -------------------
+summaryCardUI &lt;- function(id) {
+  ns &lt;- NS(id)
+  card(
+    card_header(textOutput(ns("title"))),
+    plotOutput(ns("plot"), height = 220)
+  )
+}
+
+summaryCardServer &lt;- function(id, data, title) {
+  moduleServer(id, function(input, output, session) {
+    output$title &lt;- renderText(title)
+    output$plot &lt;- renderPlot({
+      ggplot(data(), aes(mpg)) +
+        geom_histogram(bins = 15, fill = "#3B54D6", color = "white") +
+        theme_minimal()
+    })
+  })
+}
+
+# ---- UI -------------------------------------------------------------------
+ui &lt;- page_sidebar(
+  title = "Mini Motor Trends Explorer",
+  theme = bs_theme(version = 5, primary = "#3B54D6"),
+
+  sidebar = sidebar(
+    selectInput("cyl", "Cylinders", choices = sort(unique(mtcars$cyl)),
+                selected = sort(unique(mtcars$cyl)), multiple = TRUE),
+    sliderInput("mpgRange", "MPG range", min = floor(min(mtcars$mpg)),
+                max = ceiling(max(mtcars$mpg)),
+                value = c(floor(min(mtcars$mpg)), ceiling(max(mtcars$mpg)))),
+    downloadButton("dl", "Download filtered CSV")
+  ),
+
+  layout_columns(
+    col_widths = c(6, 6, 12),
+    summaryCardUI("card1"),
+    card(card_header("Weight vs. MPG"), plotOutput("scatter", height = 220)),
+    card(card_header("Filtered data"), DTOutput("table"))
+  )
+)
+
+# ---- server -----------------------------------------------------------------
+server &lt;- function(input, output, session) {
+
+  filtered &lt;- reactive({
+    req(input$cyl)
+    subset(mtcars,
+           cyl %in% input$cyl &amp;
+           mpg &gt;= input$mpgRange[1] &amp;
+           mpg &lt;= input$mpgRange[2])
+  })
+
+  summaryCardServer("card1", data = filtered, title = "MPG distribution")
+
+  output$scatter &lt;- renderPlot({
+    validate(need(nrow(filtered()) &gt; 0, "No cars match this filter"))
+    ggplot(filtered(), aes(wt, mpg, color = factor(cyl))) +
+      geom_point(size = 3) +
+      labs(color = "Cyl") +
+      theme_minimal()
+  })
+
+  output$table &lt;- renderDT({
+    datatable(filtered(), options = list(pageLength = 5))
+  })
+
+  output$dl &lt;- downloadHandler(
+    filename = function() "filtered_mtcars.csv",
+    content  = function(file) write.csv(filtered(), file, row.names = TRUE)
+  )
+}
+
+shinyApp(ui, server)</code></pre></div>
+
+        <h3 id="m42-map">Where each piece came from</h3>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Line(s)</th><th>Concept</th><th>Module</th></tr></thead>
+            <tbody>
+              <tr><td><code>summaryCardUI</code> / <code>summaryCardServer</code></td><td>Shiny modules</td><td><a href="#m32">32</a></td></tr>
+              <tr><td><code>page_sidebar()</code>, <code>layout_columns()</code>, <code>card()</code></td><td>bslib layout &amp; theming</td><td><a href="#m34">34</a></td></tr>
+              <tr><td><code>filtered &lt;- reactive({...})</code></td><td>Shared reactive expressions</td><td><a href="#m23">23</a></td></tr>
+              <tr><td><code>validate(need(...))</code></td><td>User-facing validation</td><td><a href="#m30">30</a></td></tr>
+              <tr><td><code>renderDT()</code></td><td>Interactive tables</td><td><a href="#m35">35</a></td></tr>
+              <tr><td><code>downloadHandler()</code></td><td>File downloads</td><td><a href="#m37">37</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout tip"><div class="callout-title">💡 What to try next</div><p>Extract the sidebar filters into their own module so they can drive more than one card. Add a second data source and a <code>tabsetPanel()</code> to switch between them. Deploy it to shinyapps.io using Module 41.</p></div>
+      </section>
+
+      <section class="module" id="m43" data-group="Part VII — Practice">
+        <div class="module-eyebrow">Module 43</div>
+        <h2>Quick reference cheat sheet</h2>
+        <p class="dek">The functions you'll type from memory once you've built a few apps.</p>
+
+        <h3 id="m43-core">Core</h3>
+        <div class="tbl-wrap"><table><tbody>
+          <tr><td><code>shinyApp(ui, server)</code></td><td>Assemble and return the app object</td></tr>
+          <tr><td><code>runApp("path")</code></td><td>Launch an app from a folder or file</td></tr>
+          <tr><td><code>fluidPage() / page_sidebar()</code></td><td>Top-level page container</td></tr>
+        </tbody></table></div>
+
+        <h3 id="m43-reactivity">Reactivity</h3>
+        <div class="tbl-wrap"><table><tbody>
+          <tr><td><code>reactive({})</code></td><td>Lazy, cached, shareable computation</td></tr>
+          <tr><td><code>observe({})</code></td><td>Automatic side effect, runs on every dependency change</td></tr>
+          <tr><td><code>observeEvent(trigger, {})</code></td><td>Side effect tied to one specific trigger</td></tr>
+          <tr><td><code>eventReactive(trigger, {})</code></td><td>Computation tied to one specific trigger</td></tr>
+          <tr><td><code>isolate({})</code></td><td>Read a reactive value without depending on it</td></tr>
+          <tr><td><code>reactiveVal() / reactiveValues()</code></td><td>Your own read/write reactive state</td></tr>
+          <tr><td><code>req(x)</code></td><td>Pause silently until <code>x</code> is truthy</td></tr>
+          <tr><td><code>validate(need(cond, msg))</code></td><td>Pause with a visible user-facing message</td></tr>
+          <tr><td><code>debounce(r, ms)</code></td><td>Delay reacting until input settles</td></tr>
+          <tr><td><code>bindCache(...)</code></td><td>Cache a reactive's result across sessions</td></tr>
+        </tbody></table></div>
+
+        <h3 id="m43-modules">Modules</h3>
+        <div class="tbl-wrap"><table><tbody>
+          <tr><td><code>NS(id)</code></td><td>Create a namespacing function for a module's UI</td></tr>
+          <tr><td><code>moduleServer(id, function(input, output, session) {})</code></td><td>Define a module's server logic</td></tr>
+        </tbody></table></div>
+
+        <h3 id="m43-session">Session &amp; feedback</h3>
+        <div class="tbl-wrap"><table><tbody>
+          <tr><td><code>update*Input(session, id, ...)</code></td><td>Change a widget after it's rendered</td></tr>
+          <tr><td><code>showNotification()</code></td><td>Toast-style message</td></tr>
+          <tr><td><code>showModal(modalDialog())</code></td><td>Blocking dialog</td></tr>
+          <tr><td><code>withProgress() / incProgress()</code></td><td>Progress bar for long operations</td></tr>
+          <tr><td><code>downloadHandler()</code></td><td>Pair with <code>downloadButton()</code>/<code>downloadLink()</code></td></tr>
+        </tbody></table></div>
+
+        <h3 id="m43-testing">Testing &amp; deployment</h3>
+        <div class="tbl-wrap"><table><tbody>
+          <tr><td><code>testServer()</code></td><td>Unit-test reactive server logic</td></tr>
+          <tr><td><code>shinytest2::AppDriver$new()</code></td><td>End-to-end browser tests</td></tr>
+          <tr><td><code>rsconnect::deployApp()</code></td><td>Deploy to shinyapps.io / Posit Connect</td></tr>
+          <tr><td><code>shinylive::export()</code></td><td>Compile to a static, serverless WebAssembly app</td></tr>
+        </tbody></table></div>
+
+        <div class="moduleend">
+          <span>You've reached the end of the curriculum — 44 modules, start to finish.</span>
+          <a href="#m00" class="navlink" style="display:inline;">↑ Back to start</a>
+        </div>
+      </section>
+
+    </div>
+
+    <footer class="colophon">
+      Shiny Masterclass — an independent reference guide. "Shiny" and "R" are projects of Posit Software, PBC and the R Foundation, respectively; this guide is not affiliated with either.
+    </footer>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---------- build the sidebar tree from the content itself ----------
+  var navTree = document.getElementById('navTree');
+  var modules = Array.prototype.slice.call(document.querySelectorAll('.module'));
+  var lastGroup = null;
+  modules.forEach(function(mod, idx){
+    var group = mod.getAttribute('data-group');
+    if(group && group !== lastGroup){
+      var label = document.createElement('div');
+      label.className = 'nav-group-label';
+      label.textContent = group;
+      navTree.appendChild(label);
+      lastGroup = group;
+    }
+    var item = document.createElement('div');
+    item.className = 'navitem';
+
+    var row = document.createElement('div');
+    row.className = 'navlink-row';
+
+    var a = document.createElement('a');
+    a.className = 'navlink';
+    a.href = '#' + mod.id;
+    var num = document.createElement('span');
+    num.className = 'num';
+    num.textContent = String(idx).padStart(2, '0');
+    a.appendChild(num);
+    var h2 = mod.querySelector('h2');
+    a.appendChild(document.createTextNode(h2 ? h2.textContent : mod.id));
+    row.appendChild(a);
+
+    var subs = mod.querySelectorAll('h3[id]');
+    var ul = null;
+    if(subs.length){
+      var toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'navtoggle';
+      toggle.textContent = '+';
+      toggle.setAttribute('aria-label', 'Toggle subtopics');
+      row.appendChild(toggle);
+
+      ul = document.createElement('ul');
+      ul.className = 'subnav';
+      subs.forEach(function(h3){
+        var li = document.createElement('li');
+        var sa = document.createElement('a');
+        sa.className = 'sublink';
+        sa.href = '#' + h3.id;
+        sa.textContent = h3.textContent;
+        li.appendChild(sa);
+        ul.appendChild(li);
+      });
+
+      toggle.addEventListener('click', function(){
+        var expanded = ul.classList.toggle('expanded');
+        toggle.classList.toggle('expanded', expanded);
+        toggle.textContent = expanded ? '–' : '+';
+      });
+    }
+
+    item.appendChild(row);
+    if(ul) item.appendChild(ul);
+    navTree.appendChild(item);
+  });
+
+  // ---------- mobile sidebar ----------
+  var sidebar = document.getElementById('sidebar');
+  var scrim = document.getElementById('scrim');
+  var burger = document.getElementById('burgerBtn');
+  function openNav(){ sidebar.classList.add('open'); scrim.classList.add('show'); }
+  function closeNav(){ sidebar.classList.remove('open'); scrim.classList.remove('show'); }
+  if(burger){ burger.addEventListener('click', openNav); }
+  if(scrim){ scrim.addEventListener('click', closeNav); }
+  sidebar.querySelectorAll('.navlink, .sublink').forEach(function(a){
+    a.addEventListener('click', closeNav);
+  });
+
+  // ---------- scroll progress ----------
+  var bar = document.getElementById('progressBar');
+  function updateProgress(){
+    var h = document.documentElement;
+    var scrollTop = h.scrollTop || document.body.scrollTop;
+    var height = (h.scrollHeight || document.body.scrollHeight) - h.clientHeight;
+    var pct = height > 0 ? (scrollTop / height) * 100 : 0;
+    bar.style.width = pct + '%';
+  }
+  document.addEventListener('scroll', updateProgress, {passive:true});
+  updateProgress();
+
+  // ---------- active nav link tracking (modules + subtopics) ----------
+  var sections = Array.prototype.slice.call(document.querySelectorAll('.module, .module h3[id]'));
+  var links = {};
+  document.querySelectorAll('.sidebar .navlink, .sidebar .sublink').forEach(function(a){
+    links[a.getAttribute('href').slice(1)] = a;
+  });
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      var id = entry.target.id;
+      var link = links[id];
+      if(!link) return;
+      if(entry.isIntersecting){
+        Object.keys(links).forEach(function(k){ links[k].classList.remove('active'); });
+        link.classList.add('active');
+        var parentModule = entry.target.closest('.module');
+        if(parentModule && link.classList.contains('sublink')){
+          var moduleLink = links[parentModule.id];
+          if(moduleLink) moduleLink.classList.add('active');
+        }
+        // auto-expand the active module's subtopic accordion
+        var navlinkEl = (parentModule ? links[parentModule.id] : link);
+        if(navlinkEl){
+          var navRow = navlinkEl.closest('.navlink-row');
+          var subUl = navRow && navRow.parentElement.querySelector('.subnav');
+          var toggleBtn = navRow && navRow.querySelector('.navtoggle');
+          if(subUl && toggleBtn && !subUl.classList.contains('expanded')){
+            subUl.classList.add('expanded');
+            toggleBtn.classList.add('expanded');
+            toggleBtn.textContent = '–';
+          }
+        }
+      }
+    });
+  }, {rootMargin: '-10% 0px -75% 0px', threshold: 0});
+  sections.forEach(function(s){ io.observe(s); });
+
+  // ---------- R syntax highlighter ----------
+  var KEYWORDS = /\b(function|if|else|for|while|repeat|break|next|return|TRUE|FALSE|NULL|NA|Inf|NaN|library|require|in)\b/;
+  var TOKEN_RE = new RegExp(
+    '(#.*)' +
+    '|("(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\')' +
+    '|(\\b\\d+\\.?\\d*(?:[eE][+-]?\\d+)?L?\\b)' +
+    '|(' + KEYWORDS.source + ')' +
+    '|(<<-|<-|->>|->|%>%|%\\.\\.\\.>%|\\|>|::|:::)' +
+    '|([A-Za-z._][A-Za-z0-9._]*)(?=\\()',
+    'g'
+  );
+
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function highlightR(src){
+    var out = '';
+    var lastIndex = 0;
+    var m;
+    TOKEN_RE.lastIndex = 0;
+    while((m = TOKEN_RE.exec(src)) !== null){
+      if(m.index > lastIndex){
+        out += escapeHtml(src.slice(lastIndex, m.index));
+      }
+      if(m[1] !== undefined){ out += '<span class="tok-com">' + escapeHtml(m[1]) + '</span>'; }
+      else if(m[2] !== undefined){ out += '<span class="tok-str">' + escapeHtml(m[2]) + '</span>'; }
+      else if(m[3] !== undefined){ out += '<span class="tok-num">' + escapeHtml(m[3]) + '</span>'; }
+      else if(m[4] !== undefined){ out += '<span class="tok-kw">' + escapeHtml(m[4]) + '</span>'; }
+      else if(m[5] !== undefined){ out += '<span class="tok-op">' + escapeHtml(m[5]) + '</span>'; }
+      else if(m[6] !== undefined){ out += '<span class="tok-fn">' + escapeHtml(m[6]) + '</span>'; }
+      lastIndex = TOKEN_RE.lastIndex;
+    }
+    out += escapeHtml(src.slice(lastIndex));
+    return out;
+  }
+
+  document.querySelectorAll('.code-block').forEach(function(block){
+    var pre = block.querySelector('pre');
+    var codeEl = block.querySelector('code');
+    if(!codeEl) return;
+    var raw = codeEl.textContent;
+
+    var head = document.createElement('div');
+    head.className = 'code-head';
+
+    var left = document.createElement('div');
+    left.className = 'code-head-left';
+    var dots = document.createElement('span');
+    dots.className = 'code-dots';
+    dots.innerHTML = '<span></span><span></span><span></span>';
+    var titleEl = document.createElement('span');
+    titleEl.className = 'code-title';
+    titleEl.textContent = block.getAttribute('data-title') || '';
+    left.appendChild(dots);
+    left.appendChild(titleEl);
+
+    var right = document.createElement('div');
+    right.style.display = 'flex';
+    right.style.alignItems = 'center';
+    right.style.gap = '10px';
+    var langEl = document.createElement('span');
+    langEl.className = 'code-lang';
+    langEl.textContent = block.getAttribute('data-lang') || 'r';
+
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.type = 'button';
+    btn.innerHTML = '<span class="copy-label">Copy</span>';
+
+    btn.addEventListener('click', function(){
+      var text = raw;
+      function done(){
+        btn.classList.add('copied');
+        btn.querySelector('.copy-label').textContent = 'Copied ✓';
+        setTimeout(function(){
+          btn.classList.remove('copied');
+          btn.querySelector('.copy-label').textContent = 'Copy';
+        }, 1600);
+      }
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done).catch(function(){ fallbackCopy(text, done); });
+      } else {
+        fallbackCopy(text, done);
+      }
+    });
+
+    function fallbackCopy(text, cb){
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      document.body.removeChild(ta);
+      cb();
+    }
+
+    right.appendChild(langEl);
+    right.appendChild(btn);
+    head.appendChild(left);
+    head.appendChild(right);
+    block.insertBefore(head, pre);
+
+    codeEl.innerHTML = highlightR(raw);
+  });
+})();
+</script>
